@@ -1,14 +1,48 @@
-# Project Ouroboros
+# Ouroboros Voxel Engine (Ringworld)
 
-## Project Overview
+A compact procedural voxel engine prototype for Unity that simulates a centrifugal ringworld habitat. Focused on performance, multithreaded chunk generation, and an interior-facing gravity model.
 
-Project Ouroboros is a Unity 6 procedural voxel engine prototype focused on generating a finite, looping ringworld cylinder. The current implementation establishes the core chunk data model and a baseline mesh pipeline for visible voxel faces.
+## Quick Start
 
-## Architecture
+- **Unity:** Recommended 2020.3 LTS or newer (confirm project version in ProjectSettings/ProjectVersion.txt).
+- Open the folder in Unity Hub and load the `ProjectOuroboros` project.
+- Press Play in the Scene named `Main` or the scene in `Assets/Scenes` to start.
 
-The project separates voxel storage and world rules from rendering logic.
+## Highlights
 
-- Data layer: `VoxelData` defines chunk dimensions and index math, and `ChunkData` stores block IDs in a 1D byte array.
-- Mesh layer: `ChunkRenderer` reads `ChunkData`, performs neighbor visibility checks, and builds Unity mesh buffers (vertices and triangles).
+- Multithreaded chunk generation using background tasks to avoid main-thread stalls.
+- Custom centrifugal gravity so players can walk the inner surface of a ring.
+- Concurrent data structures for safe chunk access across threads.
+- Radial chunk loading around the player to prioritize nearby terrain.
+- Texture atlas support for compact block textures.
 
-This separation keeps generation rules independent of Unity mesh construction details.
+## Features
+
+- Procedural terrain generation (Perlin noise).
+- Layered geology: grass, dirt, stone, and deeper layers.
+- Creative-style movement: walk, sprint, crouch, jump, and toggle flight.
+- Dynamic spawn height based on generated surface.
+
+## Controls
+
+- W/A/S/D — Move
+- Mouse — Look
+- Space — Jump (double-tap to toggle flight)
+- Left Shift — Sprint
+- Left Ctrl — Crouch
+
+## Development Notes
+
+- Code is primarily under `Assets/Scripts`.
+- Check `ProjectSettings/ProjectVersion.txt` for the Unity editor version used to create the project.
+- Use the Unity Profiler and Jobs/Tasks diagnostics when tuning chunk generation.
+
+## Contributing
+
+- Fork the repo, make changes on a feature branch, and open a pull request with a clear description.
+
+## Upcoming Features
+
+- Raycast-based block breaking and placing.
+- Static voxel sun and dynamic day/night mechanical shutter.
+- Triplanar mapped LODs for distant chunk rendering.
