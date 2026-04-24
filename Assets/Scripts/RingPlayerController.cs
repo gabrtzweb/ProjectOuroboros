@@ -1,14 +1,17 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(BoxCollider))]
 public class RingPlayerController : MonoBehaviour
 {
     public WorldManager worldManager;
-    public float moveSpeed = 20f;
+    public float moveSpeed = 4f;
+    public float runSpeedMultiplier = 1.5f;
+    public float crouchSpeedMultiplier = 0.5f;
+    public float flyRunSpeedMultiplier = 1.5f;
     public float lookSensitivity = 0.5f;
     public float flySpeed = 40f;
-    public float jumpForce = 10f;
+    public float jumpForce = 7f;
     public float gravityStrength = 20f;
     public float doubleTapWindow = 0.3f;
 
@@ -16,9 +19,14 @@ public class RingPlayerController : MonoBehaviour
     private Transform cameraTransform;
     private GameInput gameInput;
     private Rigidbody rb;
-    private bool isFlying = true;
+    private BoxCollider playerCollider;
+    private bool isFlying = false;
     private float lastJumpTime = 0f;
     private bool isGrounded;
+    private float defaultHeight = 2f;
+    private float crouchHeight = 1f;
+    private float defaultCamY = 1.6f;
+    private float crouchCamY = 0.8f;
 
     private void Awake()
     {
@@ -38,8 +46,24 @@ public class RingPlayerController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<BoxCollider>();
+
+        playerCollider.size = new Vector3(0.8f, 2f, 0.8f);
+        playerCollider.center = new Vector3(0f, 1f, 0f);
+
         rb.useGravity = false;
         rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+        if (worldManager != null)
+        {
+            float surfaceY = Mathf.PerlinNoise(worldManager.XOffset * worldManager.NoiseScale, worldManager.ZOffset * worldManager.NoiseScale) * worldManager.HeightMultiplier;
+            transform.position = new Vector3(0f, surfaceY + 2f, 0f);
+        }
+        else
+        {
+            transform.position = new Vector3(0f, 2f, 0f);
+        }
 
         Camera childCamera = GetComponentInChildren<Camera>();
         if (childCamera != null)
@@ -64,6 +88,28 @@ public class RingPlayerController : MonoBehaviour
         }
 
         transform.Rotate(0f, lookInput.x * lookSensitivity, 0f, Space.Self);
+
+        bool isCrouching = gameInput.Player.Crouch.IsPressed();
+        if (isCrouching && !isFlying)
+        {
+            playerCollider.size = new Vector3(0.8f, crouchHeight, 0.8f);
+            playerCollider.center = new Vector3(0f, crouchHeight / 2f, 0f);
+            if (cameraTransform != null)
+            {
+                cameraTransform.localPosition = new Vector3(0f, crouchCamY, 0f);
+            }
+        }
+        else
+        {
+            playerCollider.size = new Vector3(0.8f, defaultHeight, 0.8f);
+            playerCollider.center = new Vector3(0f, defaultHeight / 2f, 0f);
+            if (cameraTransform != null)
+            {
+                cameraTransform.localPosition = new Vector3(0f, defaultCamY, 0f);
+            }
+        }
+
+        isGrounded = Physics.Raycast(transform.position, -transform.up, 1.1f);
 
         if (gameInput.Player.Jump.WasPressedThisFrame())
         {
@@ -93,9 +139,9 @@ public class RingPlayerController : MonoBehaviour
 
         rb.MoveRotation(Quaternion.FromToRotation(transform.up, targetUp) * transform.rotation);
 
-        isGrounded = Physics.Raycast(transform.position, -targetUp, 1.1f, ~0, QueryTriggerInteraction.Ignore);
-
         Vector2 moveInput = gameInput.Player.Move.ReadValue<Vector2>();
+        bool isRunning = gameInput.Player.Sprint.IsPressed();
+        bool isCrouching = gameInput.Player.Crouch.IsPressed();
         Vector3 moveDirection = (transform.right * moveInput.x) + (transform.forward * moveInput.y);
 
         if (isFlying)
@@ -107,21 +153,42 @@ public class RingPlayerController : MonoBehaviour
                 verticalInput += 1f;
             }
 
-            if (gameInput.Player.Sprint.IsPressed())
+            if (isCrouching)
             {
                 verticalInput -= 1f;
             }
 
             moveDirection += transform.up * verticalInput;
-            rb.velocity = moveDirection.normalized * flySpeed;
+            float currentFlySpeed = flySpeed;
+            if (isRunning)
+            {
+                currentFlySpeed *= flyRunSpeedMultiplier;
+            }
+
+            rb.linearVelocity = moveDirection.normalized * currentFlySpeed;
             return;
         }
 
         rb.AddForce(-targetUp * gravityStrength, ForceMode.Acceleration);
 
-        Vector3 localVelocity = transform.InverseTransformDirection(rb.velocity);
-        Vector3 localTargetVelocity = new Vector3(moveInput.x * moveSpeed, localVelocity.y, moveInput.y * moveSpeed);
-        rb.velocity = transform.TransformDirection(localTargetVelocity);
+        Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
+        float currentSpeed = moveSpeed;
+        if (isRunning)
+        {
+            currentSpeed *= runSpeedMultiplier;
+        }
+        else if (isCrouching)
+        {
+            currentSpeed *= crouchSpeedMultiplier;
+        }
+
+        if (!isGrounded)
+        {
+            currentSpeed *= 0.6f;
+        }
+
+        Vector3 targetLocalVel = new Vector3(moveInput.x * currentSpeed, localVel.y, moveInput.y * currentSpeed);
+        rb.linearVelocity = transform.TransformDirection(targetLocalVel);
 
     }
 }

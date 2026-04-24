@@ -60,7 +60,7 @@ public class WorldManager : MonoBehaviour
     private CancellationTokenSource generationCancellation;
     private bool isShuttingDown;
 
-    private void Start()
+    private void Awake()
     {
         generationCancellation = new CancellationTokenSource();
         _ = ProcessChunkQueueAsync(generationCancellation.Token);
@@ -139,6 +139,7 @@ public class WorldManager : MonoBehaviour
 
         HashSet<Vector3Int> chunksInView = new HashSet<Vector3Int>();
         HashSet<Vector3Int> chunksToRemesh = new HashSet<Vector3Int>();
+        List<Vector3Int> newChunksToLoad = new List<Vector3Int>();
 
         for (int x = -viewDistanceInChunks; x <= viewDistanceInChunks; x++)
         {
@@ -164,14 +165,26 @@ public class WorldManager : MonoBehaviour
                         continue;
                     }
 
-                    lock (chunksToGenerate)
+                    if (!chunksToGenerate.Contains(worldCoordinate))
                     {
-                        if (!chunksToGenerate.Contains(worldCoordinate))
-                        {
-                            chunksToGenerate.Enqueue(worldCoordinate);
-                        }
+                        newChunksToLoad.Add(worldCoordinate);
                     }
                 }
+            }
+        }
+
+        newChunksToLoad.Sort((a, b) =>
+        {
+            float distA = Vector2.Distance(new Vector2(a.x, a.z), currentViewerChunkCoord);
+            float distB = Vector2.Distance(new Vector2(b.x, b.z), currentViewerChunkCoord);
+            return distA.CompareTo(distB);
+        });
+
+        lock (chunksToGenerate)
+        {
+            foreach (Vector3Int chunk in newChunksToLoad)
+            {
+                chunksToGenerate.Enqueue(chunk);
             }
         }
 
