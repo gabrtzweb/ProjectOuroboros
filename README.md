@@ -4,7 +4,6 @@ A compact procedural voxel engine prototype for Unity that simulates a centrifug
 
 ## Quick Start
 
-- **Unity:** Recommended 2020.3 LTS or newer (confirm project version in ProjectSettings/ProjectVersion.txt).
 - Open the folder in Unity Hub and load the `ProjectOuroboros` project.
 - Press Play in the Scene named `Main` or the scene in `Assets/Scenes` to start.
 
