@@ -27,43 +27,62 @@ public class ChunkData
 
                 float layerOffset = (Mathf.PerlinNoise(globalX * transitionNoiseScale, globalZ * transitionNoiseScale) * transitionAmplitude) - (transitionAmplitude / 2f);
                 int slateLimit = Mathf.FloorToInt((baseTerrainHeight * slatePercentage) + layerOffset);
-                int stoneLimit = Mathf.FloorToInt((baseTerrainHeight * (slatePercentage + stonePercentage)) + layerOffset);
+
+                bool isLeftEdge = globalX <= 2;
+                bool isRightEdge = globalX >= maxGlobalX - 2;
+                bool isEdge = isLeftEdge || isRightEdge;
 
                 for (int y = 0; y < VoxelData.ChunkHeight; y++)
                 {
                     int index = VoxelData.ToIndex(x, y, z);
                     int globalY = (worldPosition.y * VoxelData.ChunkHeight) + y;
 
-                    if (globalX == 0 || globalX == maxGlobalX)
+                    if (globalY < 3)
                     {
-                        if (globalY <= surfaceY + 4)
+                        blocks[index] = (byte)BlockType.FoundationAlloy;
+                        continue;
+                    }
+
+                    if (isEdge)
+                    {
+                        if (globalY <= surfaceY + 8)
                         {
-                            blocks[index] = 4;
+                            blocks[index] = (byte)BlockType.FoundationAlloy;
+                        }
+                        else if (globalY <= surfaceY + 16)
+                        {
+                            bool isCenterWallBlock = globalX == 1 || globalX == maxGlobalX - 1;
+                            blocks[index] = isCenterWallBlock
+                                ? (byte)BlockType.FoundationBarrier
+                                : (byte)BlockType.Air;
                         }
                         else
                         {
-                            blocks[index] = 0;
+                            blocks[index] = (byte)BlockType.Air;
                         }
+
+                        continue;
                     }
-                    else if (globalY > surfaceY)
+
+                    if (globalY > surfaceY)
                     {
-                        blocks[index] = 0;
+                        blocks[index] = (byte)BlockType.Air;
                     }
                     else if (globalY == surfaceY)
                     {
-                        blocks[index] = 1;
+                        blocks[index] = (byte)BlockType.Grass;
+                    }
+                    else if (globalY > surfaceY - 3)
+                    {
+                        blocks[index] = (byte)BlockType.Dirt;
                     }
                     else if (globalY < slateLimit)
                     {
-                        blocks[index] = 4;
-                    }
-                    else if (globalY < stoneLimit)
-                    {
-                        blocks[index] = 3;
+                        blocks[index] = (byte)BlockType.Deepslate;
                     }
                     else
                     {
-                        blocks[index] = 2;
+                        blocks[index] = (byte)BlockType.Stone;
                     }
                 }
             }

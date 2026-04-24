@@ -2,7 +2,27 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
+public enum BlockType : byte
+{
+    Air = 0,
+    Grass = 1,
+    Dirt = 2,
+    PackedDirt = 3,
+    Stone = 4,
+    Deepslate = 5,
+    Gravel = 6,
+    OakLog = 7,
+    OakLogTop = 8,
+    OakPlanks = 9,
+    OakLeaves = 10,
+    FluidWater = 11,
+    FluidMolten = 12,
+    FluidPlasma = 13,
+    FoundationAlloy = 14,
+    FoundationBarrier = 15
+}
+
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class ChunkRenderer : MonoBehaviour
 {
     private struct MeshData
@@ -38,12 +58,14 @@ public class ChunkRenderer : MonoBehaviour
     private WorldManager worldManager;
     private Vector3Int chunkWorldPosition;
     private MeshFilter meshFilter;
+    private MeshCollider meshCollider;
 
     public ChunkData Data => chunkData;
 
     public async Task InitializeDataAsync(Vector3Int worldPosition, WorldManager worldManager)
     {
         meshFilter = GetComponent<MeshFilter>();
+        meshCollider = GetComponent<MeshCollider>();
         this.worldManager = worldManager;
         chunkWorldPosition = worldPosition;
 
@@ -303,67 +325,114 @@ public class ChunkRenderer : MonoBehaviour
 
     private static Vector2[] GetUVCoords(int blockID, FaceDirection direction)
     {
-        const float tileSize = 0.25f;
+        const float tileSize = 0.125f;
 
-        float uMin;
-        float uMax;
-        float vMin;
-        float vMax;
+        BlockType blockType = (BlockType)blockID;
 
-        switch (blockID)
+        int x = 0;
+        int y = 0;
+
+        if (blockType == BlockType.Grass)
         {
-            case 1:
-                if (direction == FaceDirection.Up)
-                {
-                    uMin = 0.00f;
-                    uMax = 0.25f;
-                    vMin = 0.75f;
-                    vMax = 1.00f;
-                }
-                else if (direction == FaceDirection.Down)
-                {
-                    uMin = 0.50f;
-                    uMax = 0.75f;
-                    vMin = 0.75f;
-                    vMax = 1.00f;
-                }
-                else
-                {
-                    uMin = 0.25f;
-                    uMax = 0.50f;
-                    vMin = 0.75f;
-                    vMax = 1.00f;
-                }
-                break;
-
-            case 2:
-                uMin = 0.50f;
-                uMax = 0.75f;
-                vMin = 0.75f;
-                vMax = 1.00f;
-                break;
-
-            case 3:
-                uMin = 0.75f;
-                uMax = 1.00f;
-                vMin = 0.75f;
-                vMax = 1.00f;
-                break;
-
-            case 4:
-                uMin = 0.00f;
-                uMax = 0.25f;
-                vMin = 0.50f;
-                vMax = 0.75f;
-                break;
-
-            default:
-                uMin = 0.00f;
-                uMax = tileSize;
-                vMin = 0.00f;
-                vMax = tileSize;
-                break;
+            if (direction == FaceDirection.Up)
+            {
+                x = 0;
+                y = 7;
+            }
+            else if (direction == FaceDirection.Down)
+            {
+                x = 2;
+                y = 7;
+            }
+            else
+            {
+                x = 1;
+                y = 7;
+            }
         }
+        else if (blockType == BlockType.OakLog)
+        {
+            if (direction == FaceDirection.Up || direction == FaceDirection.Down)
+            {
+                x = 1;
+                y = 6;
+            }
+            else
+            {
+                x = 0;
+                y = 6;
+            }
+        }
+        else if (blockType == BlockType.Dirt)
+        {
+            x = 2;
+            y = 7;
+        }
+        else if (blockType == BlockType.PackedDirt)
+        {
+            x = 3;
+            y = 7;
+        }
+        else if (blockType == BlockType.Stone)
+        {
+            x = 4;
+            y = 7;
+        }
+        else if (blockType == BlockType.Deepslate)
+        {
+            x = 5;
+            y = 7;
+        }
+        else if (blockType == BlockType.Gravel)
+        {
+            x = 6;
+            y = 7;
+        }
+        else if (blockType == BlockType.OakLeaves)
+        {
+            x = 7;
+            y = 7;
+        }
+        else if (blockType == BlockType.OakLogTop)
+        {
+            x = 1;
+            y = 6;
+        }
+        else if (blockType == BlockType.OakPlanks)
+        {
+            x = 2;
+            y = 6;
+        }
+        else if (blockType == BlockType.FluidWater)
+        {
+            x = 3;
+            y = 6;
+        }
+        else if (blockType == BlockType.FluidMolten)
+        {
+            x = 4;
+            y = 6;
+        }
+        else if (blockType == BlockType.FluidPlasma)
+        {
+            x = 5;
+            y = 6;
+        }
+        else if (blockType == BlockType.FoundationAlloy)
+        {
+            x = 6;
+            y = 6;
+        }
+        else if (blockType == BlockType.FoundationBarrier)
+        {
+            x = 7;
+            y = 6;
+        }
+
+        float uMin = x * tileSize;
+        float uMax = uMin + tileSize;
+        float vMin = y * tileSize;
+        float vMax = vMin + tileSize;
 
         return new[]
         {
@@ -388,5 +457,6 @@ public class ChunkRenderer : MonoBehaviour
         mesh.RecalculateBounds();
 
         meshFilter.sharedMesh = mesh;
+        meshCollider.sharedMesh = mesh;
     }
 }
