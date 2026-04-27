@@ -2,9 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldManager : MonoBehaviour {
+    [Header("References")]
+    public Transform playerTransform;
+
     [Header("Materials")]
-    public Material matOpaque;
-    public Material matTransparent;
+    public Material opaqueMaterial;
+    public Material transparentMaterial;
     public Material matCutout;
 
     [Header("Generation Limits")]
@@ -12,10 +15,13 @@ public class WorldManager : MonoBehaviour {
     public int chunkBounds = 4;
 
     [Header("Terrain Generation Settings")]
-    public int solidGroundHeight = 4; 
-    public int terrainHeightMultiplier = 32; 
-    public float terrainNoiseScale = 0.016f; 
+    public int solidGroundHeight = -4; 
+    public int terrainHeightMultiplier = 48; 
+    public float terrainNoiseScale = 0.005f; 
     public int seaLevel = 8; 
+    public float noiseOffset = 10000f; 
+    public float heightCurve = 1.2f; 
+    public int deepslateTransitionLevel = -8;
 
     public Dictionary<Vector3Int, ChunkData> chunks = new Dictionary<Vector3Int, ChunkData>();
 
@@ -23,6 +29,7 @@ public class WorldManager : MonoBehaviour {
         GenerateWorld();
     }
 
+    // Build all chunks, generate meshes, then place the player on the surface.
     void GenerateWorld() {
         for (int x = -renderDistance; x <= renderDistance; x++) {
             for (int z = -renderDistance; z <= renderDistance; z++) {
@@ -42,8 +49,11 @@ public class WorldManager : MonoBehaviour {
         foreach (var chunk in chunks.Values) {
             chunk.GenerateMesh();
         }
+
+        SpawnPlayer();
     }
 
+    // Create and register one chunk object for a world coordinate.
     void CreateChunkData(Vector3Int coord) {
         Vector3 position = new Vector3(
             coord.x * VoxelData.ChunkWidth, 
@@ -57,11 +67,42 @@ public class WorldManager : MonoBehaviour {
         
         ChunkData chunkScript = newChunk.AddComponent<ChunkData>();
         
-        // Pass all three materials to the MeshRenderer
-        newChunk.GetComponent<MeshRenderer>().materials = new Material[] { matOpaque, matTransparent, matCutout };
+        newChunk.GetComponent<MeshRenderer>().materials = new Material[] { opaqueMaterial, transparentMaterial, matCutout };
         
         chunkScript.InitData(this, coord);
         chunks.Add(coord, chunkScript);
+    }
+
+    // Sample layered noise to determine the terrain surface height.
+    public int CalculateSurfaceHeight(int globalX, int globalZ) {
+        float scale = terrainNoiseScale;
+        float offset = noiseOffset;
+
+        float posX = (globalX + offset) * scale;
+        float posZ = (globalZ + offset) * scale;
+
+        float noise1 = Mathf.PerlinNoise(posX, posZ);
+        float noise2 = Mathf.PerlinNoise(posX * 2f, posZ * 2f) * 0.5f;
+        float noise3 = Mathf.PerlinNoise(posX * 4f, posZ * 4f) * 0.25f;
+
+        float totalNoise = (noise1 + noise2 + noise3) / 1.75f;
+        totalNoise = Mathf.Pow(totalNoise, heightCurve);
+
+        return solidGroundHeight + Mathf.FloorToInt(totalNoise * terrainHeightMultiplier);
+    }
+
+    // Teleport the player after generation so the controller starts above ground.
+    void SpawnPlayer() {
+        if (playerTransform != null) {
+            CharacterController cc = playerTransform.GetComponent<CharacterController>();
+            
+            if (cc != null) cc.enabled = false;
+            
+            int spawnY = CalculateSurfaceHeight(0, 0);
+            playerTransform.position = new Vector3(0.5f, spawnY + 2f, 0.5f);
+            
+            if (cc != null) cc.enabled = true;
+        }
     }
 
     public BlockType GetBlockFromGlobal(Vector3Int globalPos) {

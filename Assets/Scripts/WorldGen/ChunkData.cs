@@ -9,11 +9,11 @@ public class ChunkData : MonoBehaviour {
     
     int vertexIndex = 0;
     List<Vector3> vertices = new List<Vector3>(8000);
-    List<int> triangles = new List<int>(12000); // Opaque
+    List<int> triangles = new List<int>(12000);
     List<Vector2> uvs = new List<Vector2>(8000); 
     List<Color> colors = new List<Color>(8000);
-    List<int> waterTriangles = new List<int>(4000); // Transparent
-    List<int> cutoutTriangles = new List<int>(4000); // Cutout (Leaves/Grass)
+    List<int> waterTriangles = new List<int>(4000);
+    List<int> cutoutTriangles = new List<int>(4000);
     
     BlockType[] voxelMap = new BlockType[VoxelData.ChunkVolume];
 
@@ -31,6 +31,7 @@ public class ChunkData : MonoBehaviour {
         PopulateVoxelMap();
     }
 
+    // Fill the voxel array using height, noise, and boundary rules.
     void PopulateVoxelMap() {
         for (int x = 0; x < VoxelData.ChunkWidth; x++) {
             for (int z = 0; z < VoxelData.ChunkWidth; z++) {
@@ -38,17 +39,15 @@ public class ChunkData : MonoBehaviour {
                 int globalX = x + (chunkCoord.x * VoxelData.ChunkWidth);
                 int globalZ = z + (chunkCoord.z * VoxelData.ChunkWidth);
                 
-                float noiseScale = worldManager.terrainNoiseScale;
-                float surfaceNoise = Mathf.PerlinNoise(globalX * noiseScale, globalZ * noiseScale);
-                
-                int surfaceHeight = worldManager.solidGroundHeight + Mathf.FloorToInt(surfaceNoise * worldManager.terrainHeightMultiplier);
+                int surfaceHeight = worldManager.CalculateSurfaceHeight(globalX, globalZ);
 
-                float layerWave = Mathf.PerlinNoise(globalX * 0.03f, globalZ * 0.03f) * 3f;
-
+                float layerWave = Mathf.PerlinNoise((globalX + worldManager.noiseOffset) * 0.03f, (globalZ + worldManager.noiseOffset) * 0.03f) * 3f;
                 int baseDirtBoundary = surfaceHeight - 4 - Mathf.FloorToInt(layerWave * 0.5f);
                 int baseCoarseBoundary = surfaceHeight - 9 - Mathf.FloorToInt(layerWave);
                 int baseGravelBoundary = surfaceHeight - 11 - Mathf.FloorToInt(layerWave); 
-                int baseStoneBoundary = surfaceHeight - 36 - Mathf.FloorToInt(layerWave * 2f);
+
+                float deepslateWave = Mathf.PerlinNoise((globalX + worldManager.noiseOffset) * 0.05f, (globalZ + worldManager.noiseOffset) * 0.05f) * 4f;
+                int baseDeepslateBoundary = worldManager.deepslateTransitionLevel + Mathf.FloorToInt(deepslateWave);
 
                 for (int y = 0; y < VoxelData.ChunkHeight; y++) {
                     int index = VoxelData.Get1DIndex(x, y, z);
@@ -56,12 +55,13 @@ public class ChunkData : MonoBehaviour {
                     
                     int hash = (globalX * 37476139) ^ (globalY * 66826521) ^ (globalZ * 25497383);
                     hash = (hash ^ (hash >> 13)) * 12741261;
+                    
                     int dither = (Mathf.Abs(hash) % 5) - 2; 
 
                     int dirtBoundary = baseDirtBoundary + dither;
                     int coarseBoundary = baseCoarseBoundary + dither;
                     int gravelBoundary = baseGravelBoundary + dither;
-                    int stoneBoundary = baseStoneBoundary + dither;
+                    int deepslateDitheredBoundary = baseDeepslateBoundary + dither;
 
                     if (globalY > surfaceHeight) {
                         if (globalY <= worldManager.seaLevel) {
@@ -71,27 +71,45 @@ public class ChunkData : MonoBehaviour {
                         }
                     } 
                     else if (globalY == surfaceHeight) {
-                        if (globalY < worldManager.seaLevel) {
-                            voxelMap[index] = BlockType.Dirt;
-                        } else {
+                        if (globalY == worldManager.seaLevel + 1) {
+                            voxelMap[index] = BlockType.Sand;
+                        } 
+                        else if (globalY <= worldManager.seaLevel) {
+                            float mixNoise = Mathf.PerlinNoise((globalX + worldManager.noiseOffset) * 0.1f, (globalZ + worldManager.noiseOffset) * 0.1f);
+                            
+                            if (globalY >= worldManager.seaLevel - 2) {
+                                if (mixNoise > 0.6f) voxelMap[index] = BlockType.Gravel;
+                                else if (mixNoise > 0.3f) voxelMap[index] = BlockType.Sand;
+                                else voxelMap[index] = BlockType.Dirt;
+                            } else {
+                                voxelMap[index] = mixNoise > 0.4f ? BlockType.Gravel : BlockType.Dirt;
+                            }
+                        } 
+                        else {
                             voxelMap[index] = BlockType.Grass; 
                         }
-                    } else if (globalY >= dirtBoundary) {
+                    } 
+                    else if (globalY >= dirtBoundary) {
                         voxelMap[index] = BlockType.Dirt; 
-                    } else if (globalY >= coarseBoundary) {
+                    } 
+                    else if (globalY >= coarseBoundary) {
                         voxelMap[index] = BlockType.CoarseDirt; 
-                    } else if (globalY >= gravelBoundary) {
+                    } 
+                    else if (globalY >= gravelBoundary) {
                         voxelMap[index] = BlockType.Gravel; 
-                    } else if (globalY >= stoneBoundary) {
-                        voxelMap[index] = BlockType.Stone; 
-                    } else {
+                    } 
+                    else if (globalY <= deepslateDitheredBoundary) {
                         voxelMap[index] = BlockType.Deepslate; 
+                    } 
+                    else {
+                        voxelMap[index] = BlockType.Stone; 
                     }
                 }
             }
         }
     }
 
+    // Convert visible voxels into the mesh and route each material to its submesh.
     public void GenerateMesh() {
         CreateMeshData();
         CreateMesh();
@@ -120,16 +138,13 @@ public class ChunkData : MonoBehaviour {
             Vector3Int neighborLocalPos = localPos + VoxelData.faceChecks[p];
             BlockType neighborBlock = GetVoxelType(neighborLocalPos);
 
-            // Refined Face Culling Logic
             if (currentBlock == BlockType.Water) {
                 if (neighborBlock != BlockType.Air) continue; 
             } 
             else if (currentBlock == BlockType.Leaves) {
-                // Leaves only draw faces next to air or water
                 if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water) continue;
             }
             else {
-                // Solid blocks draw faces if touching Air, Water, or Leaves
                 if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water && neighborBlock != BlockType.Leaves) continue;
             }
 
@@ -166,7 +181,6 @@ public class ChunkData : MonoBehaviour {
                 faceColor = new Color(0.2f, 0.5f, 0.9f, 0.75f);
             }
             else if (currentBlock == BlockType.Leaves) {
-                // Leaves get a similar green tint variation to the grass
                 float noiseScale = 0.03f; 
                 float ambientNoise = Mathf.PerlinNoise(globalPos.x * noiseScale, globalPos.z * noiseScale);
                 float colorVariation = Mathf.Lerp(0.85f, 1.15f, ambientNoise);
@@ -178,7 +192,6 @@ public class ChunkData : MonoBehaviour {
             colors.Add(faceColor);
             colors.Add(faceColor);
 
-            // Assign triangles to the correct SubMesh
             if (currentBlock == BlockType.Water) {
                 waterTriangles.Add(vertexIndex);
                 waterTriangles.Add(vertexIndex + 1);
@@ -308,11 +321,10 @@ public class ChunkData : MonoBehaviour {
             colors = colors.ToArray() 
         };
 
-        // We now have 3 SubMeshes
         mesh.subMeshCount = 3;
-        mesh.SetTriangles(triangles.ToArray(), 0); // Opaque
-        mesh.SetTriangles(waterTriangles.ToArray(), 1); // Transparent
-        mesh.SetTriangles(cutoutTriangles.ToArray(), 2); // Cutout
+        mesh.SetTriangles(triangles.ToArray(), 0);
+        mesh.SetTriangles(waterTriangles.ToArray(), 1);
+        mesh.SetTriangles(cutoutTriangles.ToArray(), 2);
 
         mesh.RecalculateNormals();
         meshFilter.mesh = mesh;
@@ -321,7 +333,7 @@ public class ChunkData : MonoBehaviour {
         vertices.Clear();
         triangles.Clear();
         waterTriangles.Clear();
-        cutoutTriangles.Clear(); // Clear the cutout list
+        cutoutTriangles.Clear();
         uvs.Clear(); 
         colors.Clear(); 
         vertexIndex = 0;
