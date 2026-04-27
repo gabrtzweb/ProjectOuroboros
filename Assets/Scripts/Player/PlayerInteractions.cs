@@ -16,7 +16,6 @@ public class PlayerInteractions : MonoBehaviour {
         input.Disable();
     }
 
-    // Poll the interaction actions once per frame.
     void Update() {
         if (input.Player.UsePrimary.WasPressedThisFrame()) {
             Debug.Log("Ação Primária ativada (Pronta para quebrar blocos)");

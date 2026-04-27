@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), typeof(PlayerInputHandler))]
 public class PlayerMovement : MonoBehaviour {
     public float walkSpeed = 4f;
     public float runSpeed = 7f;
@@ -9,43 +8,35 @@ public class PlayerMovement : MonoBehaviour {
     public float gravity = -15f;
 
     CharacterController controller;
-    GameInput input;
+    PlayerInputHandler inputHandler;
     Vector3 velocity;
-    bool isGrounded;
 
     void Awake() {
         controller = GetComponent<CharacterController>();
-        input = new GameInput();
+        inputHandler = GetComponent<PlayerInputHandler>();
     }
 
-    void OnEnable() {
-        input.Enable();
-    }
-
-    void OnDisable() {
-        input.Disable();
-    }
-
-    void Start() {
-    }
-
-    // Read movement input, then apply horizontal movement and jump physics.
     void Update() {
-        isGrounded = controller.isGrounded;
+        ApplyMovement();
+        ApplyGravityAndJump();
+    }
+
+    void ApplyMovement() {
+        float currentSpeed = inputHandler.IsSprinting ? runSpeed : walkSpeed;
+        Vector2 moveInput = inputHandler.MoveInput;
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
+        
+        controller.Move(move * currentSpeed * Time.deltaTime);
+    }
+
+    void ApplyGravityAndJump() {
+        bool isGrounded = controller.isGrounded;
         
         if (isGrounded && velocity.y < 0) {
             velocity.y = -2f; 
         }
 
-        Vector2 moveInput = input.Player.Move.ReadValue<Vector2>();
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-
-        bool isSprinting = input.Player.Sprint.IsPressed();
-        float currentSpeed = isSprinting ? runSpeed : walkSpeed;
-
-        controller.Move(move * currentSpeed * Time.deltaTime);
-
-        if (input.Player.Jump.WasPressedThisFrame() && isGrounded) {
+        if (inputHandler.IsJumping && isGrounded) {
             velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
         }
 

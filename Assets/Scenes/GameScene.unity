@@ -721,7 +721,7 @@ MonoBehaviour:
   seaLevel: 8
   noiseOffset: 10000
   heightCurve: 1.2
-  deepslateTransitionLevel: -8
+  deepslateTransitionLevel: -32
 --- !u!4 &2083868389
 Transform:
   m_ObjectHideFlags: 0

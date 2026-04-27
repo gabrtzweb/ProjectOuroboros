@@ -21,7 +21,7 @@ public class WorldManager : MonoBehaviour {
     public int seaLevel = 8; 
     public float noiseOffset = 10000f; 
     public float heightCurve = 1.2f; 
-    public int deepslateTransitionLevel = -8;
+    public int deepslateTransitionLevel = -32;
 
     public Dictionary<Vector3Int, ChunkData> chunks = new Dictionary<Vector3Int, ChunkData>();
 
