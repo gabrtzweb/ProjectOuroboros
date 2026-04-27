@@ -18,11 +18,11 @@ public class PlayerInteractions : MonoBehaviour {
 
     void Update() {
         if (input.Player.UsePrimary.WasPressedThisFrame()) {
-            Debug.Log("Ação Primária ativada (Pronta para quebrar blocos)");
+            Debug.Log("Primary Action activated (Ready to break blocks)");
         }
 
         if (input.Player.UseSecondary.WasPressedThisFrame()) {
-            Debug.Log("Ação Secundária ativada (Pronta para colocar blocos)");
+            Debug.Log("Secondary Action activated (Ready to place blocks)");
         }
     }
 }

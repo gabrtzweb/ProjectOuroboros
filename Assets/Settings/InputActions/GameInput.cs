@@ -208,15 +208,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""ToggleShoulder"",
-                    ""type"": ""Button"",
-                    ""id"": ""da099282-0de4-48d4-bd68-0058e44dea93"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -640,28 +631,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""181eb898-9552-4033-8850-892bda74a735"",
-                    ""path"": ""<Gamepad>/dpad/down"",
-                    ""interactions"": ""Hold"",
-                    ""processors"": """",
-                    ""groups"": "";Gamepad"",
-                    ""action"": ""ToggleShoulder"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""07c36a1f-79f0-49e3-b077-02b6b6e0b729"",
-                    ""path"": ""<Keyboard>/b"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": "";Keyboard&Mouse"",
-                    ""action"": ""ToggleShoulder"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""3ffe8984-9d88-40f5-9234-e7d270366e5c"",
                     ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
@@ -785,7 +754,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Player_HotbarScroll = m_Player.FindAction("HotbarScroll", throwIfNotFound: true);
         m_Player_HotbarSelect = m_Player.FindAction("HotbarSelect", throwIfNotFound: true);
         m_Player_TogglePerspective = m_Player.FindAction("TogglePerspective", throwIfNotFound: true);
-        m_Player_ToggleShoulder = m_Player.FindAction("ToggleShoulder", throwIfNotFound: true);
     }
 
     ~@GameInput()
@@ -879,7 +847,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_HotbarScroll;
     private readonly InputAction m_Player_HotbarSelect;
     private readonly InputAction m_Player_TogglePerspective;
-    private readonly InputAction m_Player_ToggleShoulder;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -943,10 +910,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/TogglePerspective".
         /// </summary>
         public InputAction @TogglePerspective => m_Wrapper.m_Player_TogglePerspective;
-        /// <summary>
-        /// Provides access to the underlying input action "Player/ToggleShoulder".
-        /// </summary>
-        public InputAction @ToggleShoulder => m_Wrapper.m_Player_ToggleShoulder;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1012,9 +975,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @TogglePerspective.started += instance.OnTogglePerspective;
             @TogglePerspective.performed += instance.OnTogglePerspective;
             @TogglePerspective.canceled += instance.OnTogglePerspective;
-            @ToggleShoulder.started += instance.OnToggleShoulder;
-            @ToggleShoulder.performed += instance.OnToggleShoulder;
-            @ToggleShoulder.canceled += instance.OnToggleShoulder;
         }
 
         /// <summary>
@@ -1065,9 +1025,6 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @TogglePerspective.started -= instance.OnTogglePerspective;
             @TogglePerspective.performed -= instance.OnTogglePerspective;
             @TogglePerspective.canceled -= instance.OnTogglePerspective;
-            @ToggleShoulder.started -= instance.OnToggleShoulder;
-            @ToggleShoulder.performed -= instance.OnToggleShoulder;
-            @ToggleShoulder.canceled -= instance.OnToggleShoulder;
         }
 
         /// <summary>
@@ -1264,12 +1221,5 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTogglePerspective(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "ToggleShoulder" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnToggleShoulder(InputAction.CallbackContext context);
     }
 }

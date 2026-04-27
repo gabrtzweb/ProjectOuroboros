@@ -122,15 +122,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "ToggleShoulder",
-                    "type": "Button",
-                    "id": "da099282-0de4-48d4-bd68-0058e44dea93",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -549,28 +540,6 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "HotbarSelect",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "181eb898-9552-4033-8850-892bda74a735",
-                    "path": "<Gamepad>/dpad/down",
-                    "interactions": "Hold",
-                    "processors": "",
-                    "groups": ";Gamepad",
-                    "action": "ToggleShoulder",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "07c36a1f-79f0-49e3-b077-02b6b6e0b729",
-                    "path": "<Keyboard>/b",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "ToggleShoulder",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
