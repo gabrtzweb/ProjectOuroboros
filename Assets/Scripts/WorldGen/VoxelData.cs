@@ -43,5 +43,8 @@ public enum BlockType : byte {
     CoarseDirt = 3,
     Stone = 4,
     Deepslate = 5,
-    Gravel = 6
+    Gravel = 6,
+    Sand = 7,
+    Water = 8,
+    Leaves = 9
 }

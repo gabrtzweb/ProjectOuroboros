@@ -647,9 +647,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f30893aceb1a3dd4880e689398e4011f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldManager
-  chunkMaterial: {fileID: 2100000, guid: 95b075a6c51718f47bb27e429c2cffc6, type: 2}
+  matOpaque: {fileID: 2100000, guid: 95b075a6c51718f47bb27e429c2cffc6, type: 2}
+  matTransparent: {fileID: 2100000, guid: 60daf863c20d1f64db321088c3b59a48, type: 2}
+  matCutout: {fileID: 2100000, guid: 23848d2b09ef9e14c80aa73e12022f22, type: 2}
   renderDistance: 16
   chunkBounds: 4
+  solidGroundHeight: 4
+  terrainHeightMultiplier: 32
+  terrainNoiseScale: 0.016
+  seaLevel: 8
 --- !u!4 &2083868389
 Transform:
   m_ObjectHideFlags: 0

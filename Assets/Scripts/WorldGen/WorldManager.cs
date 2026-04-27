@@ -2,12 +2,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldManager : MonoBehaviour {
-    public Material chunkMaterial;
+    [Header("Materials")]
+    public Material matOpaque;
+    public Material matTransparent;
+    public Material matCutout;
+
+    [Header("Generation Limits")]
     public int renderDistance = 16;
-    
-    // This value represents how many chunks extend in each vertical direction.
-    // Setting it to 4 means the world goes from -4 to 3 (8 chunks total, matching -64 to +64).
     public int chunkBounds = 4;
+
+    [Header("Terrain Generation Settings")]
+    public int solidGroundHeight = 4; 
+    public int terrainHeightMultiplier = 32; 
+    public float terrainNoiseScale = 0.016f; 
+    public int seaLevel = 8; 
 
     public Dictionary<Vector3Int, ChunkData> chunks = new Dictionary<Vector3Int, ChunkData>();
 
@@ -24,7 +32,6 @@ public class WorldManager : MonoBehaviour {
                     continue;
                 }
 
-                // Generates from -chunkBounds to chunkBounds - 1 (-4 to 3)
                 for (int y = -chunkBounds; y < chunkBounds; y++) {
                     Vector3Int chunkCoord = new Vector3Int(x, y, z);
                     CreateChunkData(chunkCoord);
@@ -48,9 +55,10 @@ public class WorldManager : MonoBehaviour {
         newChunk.transform.position = position;
         newChunk.transform.parent = this.transform;
         
-        // Using the newly renamed ChunkData script
         ChunkData chunkScript = newChunk.AddComponent<ChunkData>();
-        newChunk.GetComponent<MeshRenderer>().material = chunkMaterial;
+        
+        // Pass all three materials to the MeshRenderer
+        newChunk.GetComponent<MeshRenderer>().materials = new Material[] { matOpaque, matTransparent, matCutout };
         
         chunkScript.InitData(this, coord);
         chunks.Add(coord, chunkScript);
