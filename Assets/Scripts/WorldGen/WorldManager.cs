@@ -122,4 +122,35 @@ public class WorldManager : MonoBehaviour {
 
         return BlockType.Air; 
     }
+
+    public void SetBlock(Vector3Int globalPos, BlockType type) {
+        int chunkX = Mathf.FloorToInt((float)globalPos.x / VoxelData.ChunkWidth);
+        int chunkY = Mathf.FloorToInt((float)globalPos.y / VoxelData.ChunkHeight);
+        int chunkZ = Mathf.FloorToInt((float)globalPos.z / VoxelData.ChunkWidth);
+
+        Vector3Int chunkCoord = new Vector3Int(chunkX, chunkY, chunkZ);
+
+        if (chunks.TryGetValue(chunkCoord, out ChunkData chunk)) {
+            int localX = globalPos.x - (chunkX * VoxelData.ChunkWidth);
+            int localY = globalPos.y - (chunkY * VoxelData.ChunkHeight);
+            int localZ = globalPos.z - (chunkZ * VoxelData.ChunkWidth);
+            
+            chunk.SetBlockType(localX, localY, localZ, type);
+            chunk.GenerateMesh();
+
+            // Atualiza os chunks vizinhos se o bloco modificado estiver na borda
+            if (localX == 0) UpdateChunkAt(chunkCoord + new Vector3Int(-1, 0, 0));
+            if (localX == VoxelData.ChunkWidth - 1) UpdateChunkAt(chunkCoord + new Vector3Int(1, 0, 0));
+            if (localY == 0) UpdateChunkAt(chunkCoord + new Vector3Int(0, -1, 0));
+            if (localY == VoxelData.ChunkHeight - 1) UpdateChunkAt(chunkCoord + new Vector3Int(0, 1, 0));
+            if (localZ == 0) UpdateChunkAt(chunkCoord + new Vector3Int(0, 0, -1));
+            if (localZ == VoxelData.ChunkWidth - 1) UpdateChunkAt(chunkCoord + new Vector3Int(0, 0, 1));
+        }
+    }
+
+    void UpdateChunkAt(Vector3Int coord) {
+        if (chunks.TryGetValue(coord, out ChunkData chunk)) {
+            chunk.GenerateMesh();
+        }
+    }
 }

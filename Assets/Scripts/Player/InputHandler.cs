@@ -10,6 +10,7 @@ public class InputHandler : MonoBehaviour {
     public bool IsJumping => input.Player.Jump.WasPressedThisFrame();
     public bool PrimaryActionPressed => input.Player.UsePrimary.WasPressedThisFrame();
     public bool SecondaryActionPressed => input.Player.UseSecondary.WasPressedThisFrame();
+    public bool PickBlockPressed => input.Player.PickBlock.WasPressedThisFrame();
     public bool TogglePerspectivePressed => input.Player.TogglePerspective.WasPressedThisFrame();
     public bool IsCrouching => input.Player.Crouch.IsPressed();
     public bool IsCrawling => input.Player.Crawl.IsPressed();

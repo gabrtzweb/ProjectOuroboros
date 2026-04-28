@@ -46,5 +46,10 @@ public enum BlockType : byte {
     Gravel = 6,
     Sand = 7,
     Water = 8,
-    Leaves = 9
+    Leaves = 9,
+    OakPlanks = 10,
+    Bedrock = 11,
+    ShortGrass = 12,
+    ShortBush = 13,
+    ShortDryGrass = 14
 }

@@ -24,7 +24,6 @@ public class ChunkData : MonoBehaviour {
         mesh = new Mesh();
         mesh.MarkDynamic();
         meshFilter.sharedMesh = mesh;
-        meshCollider.sharedMesh = mesh;
         
         TerrainGenerator.PopulateVoxelMap(this);
     }
@@ -32,7 +31,6 @@ public class ChunkData : MonoBehaviour {
     public void GenerateMesh() {
         MeshBuilder.BuildMesh(this, mesh);
         meshFilter.sharedMesh = mesh;
-        meshCollider.sharedMesh = mesh;
     }
 
     public void SetBlockType(int x, int y, int z, BlockType type) {
@@ -60,5 +58,9 @@ public class ChunkData : MonoBehaviour {
         }
 
         return GetBlockType(localPos.x, localPos.y, localPos.z);
+    }
+
+    public void UpdateCollider(Mesh collisionMesh) {
+        meshCollider.sharedMesh = collisionMesh;
     }
 }

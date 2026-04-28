@@ -10,6 +10,7 @@ public static class MeshBuilder {
         public readonly List<Color> Colors = new List<Color>(8000);
         public readonly List<int> WaterTriangles = new List<int>(4000);
         public readonly List<int> CutoutTriangles = new List<int>(4000);
+        public readonly List<int> CollisionTriangles = new List<int>(12000); 
     }
 
     public static void BuildMesh(ChunkData chunk, Mesh mesh) {
@@ -18,9 +19,7 @@ public static class MeshBuilder {
 
         mesh.Clear();
 
-        if (buffers.Vertices.Count == 0) {
-            return;
-        }
+        if (buffers.Vertices.Count == 0) return;
 
         mesh.SetVertices(buffers.Vertices);
         mesh.SetUVs(0, buffers.UVs);
@@ -30,6 +29,15 @@ public static class MeshBuilder {
         mesh.SetTriangles(buffers.WaterTriangles, 1);
         mesh.SetTriangles(buffers.CutoutTriangles, 2);
         mesh.RecalculateNormals();
+
+        if (buffers.CollisionTriangles.Count > 0) {
+            Mesh collisionMesh = new Mesh();
+            collisionMesh.SetVertices(buffers.Vertices);
+            collisionMesh.SetTriangles(buffers.CollisionTriangles, 0);
+            chunk.UpdateCollider(collisionMesh);
+        } else {
+            chunk.UpdateCollider(null);
+        }
     }
 
     static void CreateMeshData(ChunkData chunk, MeshBuffers buffers) {
@@ -53,6 +61,11 @@ public static class MeshBuilder {
             localPos.z + (chunk.ChunkCoord.z * VoxelData.ChunkWidth)
         );
 
+        if (currentBlock == BlockType.ShortGrass || currentBlock == BlockType.ShortBush || currentBlock == BlockType.ShortDryGrass) {
+            BuildCrossMesh(currentBlock, localPos, buffers, globalPos);
+            return;
+        }
+
         Color blockColor = Color.white;
         int rotation = 0;
 
@@ -62,8 +75,7 @@ public static class MeshBuilder {
 
             if (currentBlock == BlockType.Grass) {
                 blockColor = new Color(0.35f * colorVariation, 0.7f * colorVariation, 0.3f * colorVariation, 1f);
-            }
-            else {
+            } else {
                 blockColor = new Color(0.2f * colorVariation, 0.55f * colorVariation, 0.2f * colorVariation, 1f);
             }
         }
@@ -81,17 +93,18 @@ public static class MeshBuilder {
             BlockType neighborBlock = chunk.GetVoxelType(neighborLocalPos);
 
             if (currentBlock == BlockType.Water) {
-                if (neighborBlock != BlockType.Air) {
-                    continue;
-                }
+                if (neighborBlock != BlockType.Air) continue;
             }
             else if (currentBlock == BlockType.Leaves) {
-                if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water) {
-                    continue;
-                }
+                if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water) continue;
             }
             else {
-                if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water && neighborBlock != BlockType.Leaves) {
+                if (neighborBlock != BlockType.Air && 
+                    neighborBlock != BlockType.Water && 
+                    neighborBlock != BlockType.Leaves && 
+                    neighborBlock != BlockType.ShortGrass && 
+                    neighborBlock != BlockType.ShortBush &&
+                    neighborBlock != BlockType.ShortDryGrass) {
                     continue;
                 }
             }
@@ -105,36 +118,95 @@ public static class MeshBuilder {
 
             Color faceColor = currentBlock == BlockType.Grass && p != VoxelConstants.FaceTop ? Color.white : blockColor;
 
-            buffers.Colors.Add(faceColor);
-            buffers.Colors.Add(faceColor);
-            buffers.Colors.Add(faceColor);
-            buffers.Colors.Add(faceColor);
+            buffers.Colors.Add(faceColor); buffers.Colors.Add(faceColor);
+            buffers.Colors.Add(faceColor); buffers.Colors.Add(faceColor);
 
             if (currentBlock == BlockType.Water) {
-                buffers.WaterTriangles.Add(buffers.VertexIndex);
-                buffers.WaterTriangles.Add(buffers.VertexIndex + 1);
-                buffers.WaterTriangles.Add(buffers.VertexIndex + 2);
-                buffers.WaterTriangles.Add(buffers.VertexIndex + 2);
-                buffers.WaterTriangles.Add(buffers.VertexIndex + 1);
-                buffers.WaterTriangles.Add(buffers.VertexIndex + 3);
+                buffers.WaterTriangles.AddRange(new int[] { buffers.VertexIndex, buffers.VertexIndex + 1, buffers.VertexIndex + 2, buffers.VertexIndex + 2, buffers.VertexIndex + 1, buffers.VertexIndex + 3 });
             }
             else if (currentBlock == BlockType.Leaves) {
-                buffers.CutoutTriangles.Add(buffers.VertexIndex);
-                buffers.CutoutTriangles.Add(buffers.VertexIndex + 1);
-                buffers.CutoutTriangles.Add(buffers.VertexIndex + 2);
-                buffers.CutoutTriangles.Add(buffers.VertexIndex + 2);
-                buffers.CutoutTriangles.Add(buffers.VertexIndex + 1);
-                buffers.CutoutTriangles.Add(buffers.VertexIndex + 3);
+                buffers.CutoutTriangles.AddRange(new int[] { buffers.VertexIndex, buffers.VertexIndex + 1, buffers.VertexIndex + 2, buffers.VertexIndex + 2, buffers.VertexIndex + 1, buffers.VertexIndex + 3 });
             }
             else {
-                buffers.Triangles.Add(buffers.VertexIndex);
-                buffers.Triangles.Add(buffers.VertexIndex + 1);
-                buffers.Triangles.Add(buffers.VertexIndex + 2);
-                buffers.Triangles.Add(buffers.VertexIndex + 2);
-                buffers.Triangles.Add(buffers.VertexIndex + 1);
-                buffers.Triangles.Add(buffers.VertexIndex + 3);
+                buffers.Triangles.AddRange(new int[] { buffers.VertexIndex, buffers.VertexIndex + 1, buffers.VertexIndex + 2, buffers.VertexIndex + 2, buffers.VertexIndex + 1, buffers.VertexIndex + 3 });
             }
 
+            if (currentBlock != BlockType.Water && currentBlock != BlockType.Leaves) {
+                buffers.CollisionTriangles.AddRange(new int[] { buffers.VertexIndex, buffers.VertexIndex + 1, buffers.VertexIndex + 2, buffers.VertexIndex + 2, buffers.VertexIndex + 1, buffers.VertexIndex + 3 });
+            }
+
+            buffers.VertexIndex += 4;
+        }
+    }
+
+    static void BuildCrossMesh(BlockType type, Vector3Int localPos, MeshBuffers buffers, Vector3Int globalPos) {
+        int plantHash = (globalPos.x * 37476139) ^ (globalPos.y * 66826521) ^ (globalPos.z * 25497383);
+        plantHash = (plantHash ^ (plantHash >> 13)) * 12741261;
+
+        int variant = (Mathf.Abs(plantHash) % 100) > 50 ? 1 : 0;
+        
+        int textureID;
+        if (type == BlockType.ShortGrass) textureID = VoxelConstants.ShortGrassTextureId + variant;
+        else if (type == BlockType.ShortBush) textureID = VoxelConstants.ShortBushTextureId + variant;
+        else textureID = VoxelConstants.ShortDryGrassTextureId + variant;
+
+        Color blockColor = Color.white;
+        
+        // Color applied only to living plants. Dry grass remains white (original texture colors)
+        if (type == BlockType.ShortGrass || type == BlockType.ShortBush) {
+            float ambientNoise = Mathf.PerlinNoise(globalPos.x * VoxelConstants.GrassNoiseScale, globalPos.z * VoxelConstants.GrassNoiseScale);
+            float colorVariation = Mathf.Lerp(VoxelConstants.GrassTintMinimum, VoxelConstants.GrassTintMaximum, ambientNoise);
+            blockColor = new Color(0.35f * colorVariation, 0.7f * colorVariation, 0.3f * colorVariation, 1f);
+        }
+
+        // Random jitter offset (-0.3 to 0.3) to break the grid alignment
+        float offsetX = ((Mathf.Abs(plantHash) % 100) / 100f) * 0.6f - 0.3f;
+        float offsetZ = (((Mathf.Abs(plantHash) / 100) % 100) / 100f) * 0.6f - 0.3f;
+        
+        // Random scale (0.7 to 1.2) for the plant height
+        float scaleY = 0.7f + (((Mathf.Abs(plantHash) / 10000) % 100) / 100f) * 0.5f;
+
+        Vector3 jitter = new Vector3(offsetX, 0, offsetZ);
+
+        for (int i = 0; i < 2; i++) {
+            int vFront = buffers.VertexIndex;
+            if (i == 0) {
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, 0, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, scaleY, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, 0, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, scaleY, 1));
+            } else {
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, 0, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, scaleY, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, 0, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, scaleY, 0));
+            }
+
+            AddTexture(textureID, 0, buffers);
+            buffers.Colors.Add(blockColor); buffers.Colors.Add(blockColor);
+            buffers.Colors.Add(blockColor); buffers.Colors.Add(blockColor);
+
+            buffers.CutoutTriangles.AddRange(new int[] { vFront, vFront + 1, vFront + 2, vFront + 2, vFront + 1, vFront + 3 });
+            buffers.VertexIndex += 4;
+
+            int vBack = buffers.VertexIndex;
+            if (i == 0) {
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, 0, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, scaleY, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, 0, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, scaleY, 1));
+            } else {
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, 0, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(0, scaleY, 1));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, 0, 0));
+                buffers.Vertices.Add(localPos + jitter + new Vector3(1, scaleY, 0));
+            }
+
+            AddTexture(textureID, 0, buffers);
+            buffers.Colors.Add(blockColor); buffers.Colors.Add(blockColor);
+            buffers.Colors.Add(blockColor); buffers.Colors.Add(blockColor);
+
+            buffers.CutoutTriangles.AddRange(new int[] { vBack + 2, vBack + 1, vBack, vBack + 3, vBack + 1, vBack + 2 });
             buffers.VertexIndex += 4;
         }
     }
@@ -142,9 +214,7 @@ public static class MeshBuilder {
     static void AddTexture(int textureID, int rotation, MeshBuffers buffers) {
         float y = textureID / VoxelData.TextureAtlasSizeInBlocks;
         float x = textureID - (y * VoxelData.TextureAtlasSizeInBlocks);
-
         y = (VoxelData.TextureAtlasSizeInBlocks - 1) - y;
-
         x *= VoxelData.NormalizedBlockTextureSize;
         y *= VoxelData.NormalizedBlockTextureSize;
 
@@ -157,27 +227,15 @@ public static class MeshBuilder {
         Vector2 uvTR = new Vector2(x + uvSize, y + uvSize);
 
         switch (rotation) {
-            case 1:
-                buffers.UVs.Add(uvBR); buffers.UVs.Add(uvBL); buffers.UVs.Add(uvTR); buffers.UVs.Add(uvTL);
-                break;
-            case 2:
-                buffers.UVs.Add(uvTR); buffers.UVs.Add(uvBR); buffers.UVs.Add(uvTL); buffers.UVs.Add(uvBL);
-                break;
-            case 3:
-                buffers.UVs.Add(uvTL); buffers.UVs.Add(uvTR); buffers.UVs.Add(uvBL); buffers.UVs.Add(uvBR);
-                break;
-            default:
-                buffers.UVs.Add(uvBL); buffers.UVs.Add(uvTL); buffers.UVs.Add(uvBR); buffers.UVs.Add(uvTR);
-                break;
+            case 1: buffers.UVs.Add(uvBR); buffers.UVs.Add(uvBL); buffers.UVs.Add(uvTR); buffers.UVs.Add(uvTL); break;
+            case 2: buffers.UVs.Add(uvTR); buffers.UVs.Add(uvBR); buffers.UVs.Add(uvTL); buffers.UVs.Add(uvBL); break;
+            case 3: buffers.UVs.Add(uvTL); buffers.UVs.Add(uvTR); buffers.UVs.Add(uvBL); buffers.UVs.Add(uvBR); break;
+            default: buffers.UVs.Add(uvBL); buffers.UVs.Add(uvTL); buffers.UVs.Add(uvBR); buffers.UVs.Add(uvTR); break;
         }
     }
 
     static int GetTextureID(BlockType type, Vector3Int globalPos, int faceIndex) {
-        float variantNoise = Mathf.PerlinNoise(
-            (globalPos.x + globalPos.y * 0.5f) * 0.2f,
-            globalPos.z * 0.2f
-        );
-
+        float variantNoise = Mathf.PerlinNoise((globalPos.x + globalPos.y * 0.5f) * 0.2f, globalPos.z * 0.2f);
         int variant = variantNoise > 0.5f ? 1 : 0;
 
         switch (type) {
@@ -185,24 +243,17 @@ public static class MeshBuilder {
                 if (faceIndex == VoxelConstants.FaceTop) return VoxelConstants.GrassTopTextureId + variant;
                 if (faceIndex == VoxelConstants.FaceBottom) return VoxelConstants.GrassBottomTextureId + variant;
                 return VoxelConstants.GrassSideTextureId + variant;
-            case BlockType.Dirt:
-                return VoxelConstants.DirtTextureId + variant;
-            case BlockType.CoarseDirt:
-                return VoxelConstants.CoarseDirtTextureId + variant;
-            case BlockType.Gravel:
-                return VoxelConstants.GravelTextureId + variant;
-            case BlockType.Sand:
-                return VoxelConstants.SandTextureId + variant;
-            case BlockType.Stone:
-                return VoxelConstants.StoneTextureId + variant;
-            case BlockType.Deepslate:
-                return VoxelConstants.DeepslateTextureId + variant;
-            case BlockType.Water:
-                return VoxelConstants.WaterTextureId;
-            case BlockType.Leaves:
-                return VoxelConstants.LeavesTextureId + variant;
-            default:
-                return 0;
+            case BlockType.Dirt: return VoxelConstants.DirtTextureId + variant;
+            case BlockType.CoarseDirt: return VoxelConstants.CoarseDirtTextureId + variant;
+            case BlockType.Gravel: return VoxelConstants.GravelTextureId + variant;
+            case BlockType.Sand: return VoxelConstants.SandTextureId + variant;
+            case BlockType.Stone: return VoxelConstants.StoneTextureId + variant;
+            case BlockType.Deepslate: return VoxelConstants.DeepslateTextureId + variant;
+            case BlockType.Water: return VoxelConstants.WaterTextureId;
+            case BlockType.Leaves: return VoxelConstants.LeavesTextureId + variant;
+            case BlockType.OakPlanks: return VoxelConstants.OakPlanksTextureId + variant;
+            case BlockType.Bedrock: return VoxelConstants.BedrockTextureId + variant;
+            default: return 0;
         }
     }
 }

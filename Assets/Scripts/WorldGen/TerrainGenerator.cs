@@ -31,8 +31,46 @@ public static class TerrainGenerator {
                     int gravelBoundary = column.BaseGravelBoundary + dither;
                     int deepslateDitheredBoundary = column.BaseDeepslateBoundary + dither;
 
-                    if (globalY > column.SurfaceHeight) {
-                        chunk.SetBlockType(x, y, z, globalY <= worldManager.seaLevel ? BlockType.Water : BlockType.Air);
+                    if (globalY <= VoxelConstants.WorldBottomLevel + 2) {
+                        if (globalY == VoxelConstants.WorldBottomLevel) {
+                            chunk.SetBlockType(x, y, z, BlockType.Bedrock);
+                        } else {
+                            // 60% chance of Bedrock at block -63, 20% at block -62
+                            int bedrockChance = globalY == VoxelConstants.WorldBottomLevel + 1 ? 6 : 2;
+                            bool isBedrock = (Mathf.Abs(hash) % 10) < bedrockChance;
+                            chunk.SetBlockType(x, y, z, isBedrock ? BlockType.Bedrock : BlockType.Deepslate);
+                        }
+                    }
+                    else if (globalY > column.SurfaceHeight) {
+                        if (globalY <= worldManager.seaLevel) {
+                            chunk.SetBlockType(x, y, z, BlockType.Water);
+                        } 
+                        // Check if it is the first block above ground
+                        else if (globalY == column.SurfaceHeight + 1 && column.SurfaceHeight > worldManager.seaLevel) {
+                            bool isBeach = column.SurfaceHeight <= worldManager.seaLevel + VoxelConstants.TerrainSandBeachOffset;
+                            
+                            if (isBeach) {
+                                // Dry grass generation on sand
+                                float dryPlantNoise = Mathf.PerlinNoise(globalX * 0.1f, globalZ * 0.1f);
+                                if (dryPlantNoise > 0.6f) { // 40% of the beach has dry grass patches
+                                    int plantHash = (globalX * 12345) ^ (globalZ * 67890);
+                                    if ((Mathf.Abs(plantHash) % 100) < 15) { // 15% density inside patch
+                                        chunk.SetBlockType(x, y, z, BlockType.ShortDryGrass);
+                                    } else chunk.SetBlockType(x, y, z, BlockType.Air);
+                                } else chunk.SetBlockType(x, y, z, BlockType.Air);
+                            } else {
+                                // Standard generation for grass and bushes on dirt biomes
+                                float patchNoise = Mathf.PerlinNoise(globalX * 0.05f, globalZ * 0.05f);
+                                if (patchNoise > 0.55f) {
+                                    int plantHash = (globalX * 12345) ^ (globalZ * 67890);
+                                    int rand = Mathf.Abs(plantHash) % 100;
+                                    
+                                    if (rand < 40) chunk.SetBlockType(x, y, z, BlockType.ShortGrass);
+                                    else if (rand < 48) chunk.SetBlockType(x, y, z, BlockType.ShortBush);
+                                    else chunk.SetBlockType(x, y, z, BlockType.Air);
+                                } else chunk.SetBlockType(x, y, z, BlockType.Air);
+                            }
+                        }
                     }
                     else if (globalY == column.SurfaceHeight) {
                         if (globalY == worldManager.seaLevel + VoxelConstants.TerrainSandBeachOffset) {

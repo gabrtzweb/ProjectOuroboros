@@ -34,5 +34,14 @@ public static class VoxelConstants {
     public const int DeepslateTextureId = 2;
     public const int WaterTextureId = 26;
     public const int LeavesTextureId = 14;
+    public const int OakPlanksTextureId = 20;
+    public const int BedrockTextureId = 28;
+    public const int WorldBottomLevel = -64;
     public const int TextureVariantCount = 2;
+
+    public const int ShortGrassTextureId = 32;
+    public const int ShortBushTextureId = 34;
+    public const int ShortDryGrassTextureId = 36;
+    public const float GrassPlantChance = 0.15f;
+    public const float BushPlantChance = 0.05f;
 }
