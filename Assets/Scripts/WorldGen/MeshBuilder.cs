@@ -201,6 +201,10 @@ public static class MeshBuilder {
                 return VoxelConstants.WaterTextureId;
             case BlockType.Leaves:
                 return VoxelConstants.LeavesTextureId + variant;
+            case BlockType.OakPlanks:
+                return VoxelConstants.OakPlanksTextureId + variant;
+            case BlockType.Bedrock:
+                return VoxelConstants.BedrockTextureId + variant;
             default:
                 return 0;
         }

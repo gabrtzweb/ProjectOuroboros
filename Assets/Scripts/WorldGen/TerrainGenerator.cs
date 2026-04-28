@@ -31,7 +31,18 @@ public static class TerrainGenerator {
                     int gravelBoundary = column.BaseGravelBoundary + dither;
                     int deepslateDitheredBoundary = column.BaseDeepslateBoundary + dither;
 
-                    if (globalY > column.SurfaceHeight) {
+                    // Geração da Bedrock no fundo do mundo (Com Blend de 3 blocos)
+                    if (globalY <= VoxelConstants.WorldBottomLevel + 2) {
+                        if (globalY == VoxelConstants.WorldBottomLevel) {
+                            chunk.SetBlockType(x, y, z, BlockType.Bedrock);
+                        } else {
+                            // 60% chance de Bedrock no bloco -63, 20% no bloco -62
+                            int bedrockChance = globalY == VoxelConstants.WorldBottomLevel + 1 ? 6 : 2;
+                            bool isBedrock = (Mathf.Abs(hash) % 10) < bedrockChance;
+                            chunk.SetBlockType(x, y, z, isBedrock ? BlockType.Bedrock : BlockType.Deepslate);
+                        }
+                    }
+                    else if (globalY > column.SurfaceHeight) {
                         chunk.SetBlockType(x, y, z, globalY <= worldManager.seaLevel ? BlockType.Water : BlockType.Air);
                     }
                     else if (globalY == column.SurfaceHeight) {

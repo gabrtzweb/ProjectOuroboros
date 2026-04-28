@@ -9,9 +9,9 @@ public class CameraController : MonoBehaviour {
     public Transform cameraTarget; 
     
     [Header("Settings")]
-    public float mouseSensitivity = 0.5f;
-    public float topClamp = -85f;
-    public float bottomClamp = 85f;
+    public float mouseSensitivity = 0.4f;
+    public float topClamp = -80f;
+    public float bottomClamp = 80f;
 
     InputHandler inputHandler;
     float cameraPitch = 0f;

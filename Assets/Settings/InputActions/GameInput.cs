@@ -129,6 +129,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""PickBlock"",
+                    ""type"": ""Button"",
+                    ""id"": ""88800903-a943-4487-83bc-f9c477a04c03"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Sprint"",
                     ""type"": ""Button"",
                     ""id"": ""641cd816-40e6-41b4-8c3d-04687c349290"",
@@ -672,6 +681,28 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""action"": ""Drop"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab6ec333-3a24-41be-84cc-7db94894236d"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""PickBlock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c69ec01e-10fa-4e76-99e4-e0991ffc8a40"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""PickBlock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -745,6 +776,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
         m_Player_UsePrimary = m_Player.FindAction("UsePrimary", throwIfNotFound: true);
         m_Player_UseSecondary = m_Player.FindAction("UseSecondary", throwIfNotFound: true);
+        m_Player_PickBlock = m_Player.FindAction("PickBlock", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
         m_Player_Crawl = m_Player.FindAction("Crawl", throwIfNotFound: true);
@@ -838,6 +870,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Look;
     private readonly InputAction m_Player_UsePrimary;
     private readonly InputAction m_Player_UseSecondary;
+    private readonly InputAction m_Player_PickBlock;
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_Crouch;
     private readonly InputAction m_Player_Crawl;
@@ -874,6 +907,10 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/UseSecondary".
         /// </summary>
         public InputAction @UseSecondary => m_Wrapper.m_Player_UseSecondary;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/PickBlock".
+        /// </summary>
+        public InputAction @PickBlock => m_Wrapper.m_Player_PickBlock;
         /// <summary>
         /// Provides access to the underlying input action "Player/Sprint".
         /// </summary>
@@ -948,6 +985,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @UseSecondary.started += instance.OnUseSecondary;
             @UseSecondary.performed += instance.OnUseSecondary;
             @UseSecondary.canceled += instance.OnUseSecondary;
+            @PickBlock.started += instance.OnPickBlock;
+            @PickBlock.performed += instance.OnPickBlock;
+            @PickBlock.canceled += instance.OnPickBlock;
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
@@ -998,6 +1038,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @UseSecondary.started -= instance.OnUseSecondary;
             @UseSecondary.performed -= instance.OnUseSecondary;
             @UseSecondary.canceled -= instance.OnUseSecondary;
+            @PickBlock.started -= instance.OnPickBlock;
+            @PickBlock.performed -= instance.OnPickBlock;
+            @PickBlock.canceled -= instance.OnPickBlock;
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
@@ -1158,6 +1201,13 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnUseSecondary(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PickBlock" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPickBlock(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Sprint" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
