@@ -197,6 +197,10 @@ PrefabInstance:
       propertyPath: selectedBlock
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 1800332296771894764, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.9
+      objectReference: {fileID: 0}
     - target: {fileID: 2566729533144826600, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -245,6 +249,10 @@ PrefabInstance:
       propertyPath: thirdPersonCamera
       value: 
       objectReference: {fileID: 989972571}
+    - target: {fileID: 8679080513526796098, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.9
+      objectReference: {fileID: 0}
     - target: {fileID: 9197020809375592166, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
       propertyPath: m_Name
       value: PlayerAvatar
@@ -477,7 +485,7 @@ Transform:
   m_GameObject: {fileID: 556336106}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -969,7 +977,7 @@ Transform:
   m_GameObject: {fileID: 989972570}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.0000667572}
+  m_LocalPosition: {x: 0, y: -0.9, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1459,7 +1467,7 @@ Transform:
   m_GameObject: {fileID: 1982237332}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.0000667572}
+  m_LocalPosition: {x: 0, y: -0.9, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

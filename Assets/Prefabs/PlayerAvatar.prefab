@@ -197,7 +197,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   walkSpeed: 4.8
-  runSpeed: 8.4
+  runSpeed: 6.8
   crouchSpeed: 1.4
   crawlSpeed: 0.8
   jumpHeight: 1.32

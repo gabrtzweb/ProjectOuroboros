@@ -8,8 +8,14 @@ public class InputHandler : MonoBehaviour {
     public Vector2 LookInput => input.Player.Look.ReadValue<Vector2>();
     public bool IsSprinting => input.Player.Sprint.IsPressed();
     public bool IsJumping => input.Player.Jump.WasPressedThisFrame();
+    public bool IsJumpHeld => input.Player.Jump.IsPressed();
+    
     public bool PrimaryActionPressed => input.Player.UsePrimary.WasPressedThisFrame();
     public bool SecondaryActionPressed => input.Player.UseSecondary.WasPressedThisFrame();
+    
+    public bool IsPrimaryActionHeld => input.Player.UsePrimary.IsPressed();
+    public bool IsSecondaryActionHeld => input.Player.UseSecondary.IsPressed();
+    
     public bool PickBlockPressed => input.Player.PickBlock.WasPressedThisFrame();
     public bool TogglePerspectivePressed => input.Player.TogglePerspective.WasPressedThisFrame();
     public bool IsCrouching => input.Player.Crouch.IsPressed();

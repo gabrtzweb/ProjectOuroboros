@@ -1,20 +1,25 @@
 using UnityEngine;
 
-[RequireComponent(typeof(InputHandler))]
+[RequireComponent(typeof(InputHandler), typeof(CharacterController))]
 public class PlayerInteractions : MonoBehaviour {
     [Header("Interaction Settings")]
     public float reach = 6f;
     public BlockType selectedBlock = BlockType.OakPlanks; 
+    public float interactionCooldown = 0.15f;
 
     [Header("Highlight Box")]
-    public GameObject highlightBox; // Novo slot para arrastarmos o objeto
+    public GameObject highlightBox; 
 
     InputHandler inputHandler;
+    CharacterController playerController;
     Transform playerCamera;
     WorldManager worldManager;
 
+    float lastInteractTime;
+
     void Awake() {
         inputHandler = GetComponent<InputHandler>();
+        playerController = GetComponent<CharacterController>();
     }
 
     void Start() {
@@ -25,8 +30,19 @@ public class PlayerInteractions : MonoBehaviour {
     void Update() {
         UpdateHighlight();
 
-        if (inputHandler.PrimaryActionPressed) Interact(false);
-        if (inputHandler.SecondaryActionPressed) Interact(true);
+        bool isBreaking = inputHandler.IsPrimaryActionHeld; 
+        bool isPlacing = inputHandler.IsSecondaryActionHeld;
+
+        if (isBreaking && Time.time - lastInteractTime >= interactionCooldown) {
+            Interact(false);
+            lastInteractTime = Time.time;
+        }
+        
+        if (isPlacing && Time.time - lastInteractTime >= interactionCooldown) {
+            Interact(true);
+            lastInteractTime = Time.time;
+        }
+
         if (inputHandler.PickBlockPressed) PickBlock();
     }
 
@@ -46,7 +62,6 @@ public class PlayerInteractions : MonoBehaviour {
             
             if (blockTargeted != BlockType.Air && blockTargeted != BlockType.Water) {
                 highlightBox.SetActive(true);
-                // Posicionamos ele um pentelhésimo recuado e aplicamos scale de 1.01 para a linha não bugar dentro da pedra
                 highlightBox.transform.position = blockPos - new Vector3(0.005f, 0.005f, 0.005f);
             } else {
                 highlightBox.SetActive(false);
@@ -65,6 +80,19 @@ public class PlayerInteractions : MonoBehaviour {
                 Mathf.FloorToInt(targetPos.y),
                 Mathf.FloorToInt(targetPos.z)
             );
+
+            if (isPlacing) {
+                Bounds blockBounds = new Bounds(blockPos + new Vector3(0.5f, 0.5f, 0.5f), Vector3.one);
+                blockBounds.Expand(-0.05f); 
+                
+                if (playerController.bounds.Intersects(blockBounds)) {
+                    return;
+                }
+            } else {
+                if (worldManager.GetBlockFromGlobal(blockPos) == BlockType.Bedrock) {
+                    return;
+                }
+            }
 
             BlockType typeToSet = isPlacing ? selectedBlock : BlockType.Air;
             worldManager.SetBlock(blockPos, typeToSet);
