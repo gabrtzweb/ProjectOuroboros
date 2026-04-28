@@ -2,17 +2,35 @@ using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class ChunkData : MonoBehaviour {
+    #region Serialized Components
+    
     MeshFilter meshFilter;
     MeshCollider meshCollider; 
     Mesh mesh;
     
+    #endregion
+    
+    #region Voxel Data
+    
     BlockType[] voxelMap = new BlockType[VoxelData.ChunkVolume];
-
+    
+    #endregion
+    
+    #region World References
+    
     WorldManager worldManager;
     Vector3Int chunkCoord;
-
+    
+    #endregion
+    
+    #region Properties
+    
     public WorldManager WorldManager => worldManager;
     public Vector3Int ChunkCoord => chunkCoord;
+    
+    #endregion
+    
+    #region Initialization
 
     public void InitData(WorldManager world, Vector3Int coord) {
         worldManager = world;
@@ -28,12 +46,20 @@ public class ChunkData : MonoBehaviour {
         
         TerrainGenerator.PopulateVoxelMap(this);
     }
+    
+    #endregion
+    
+    #region Mesh Generation
 
     public void GenerateMesh() {
         MeshBuilder.BuildMesh(this, mesh);
         meshFilter.sharedMesh = mesh;
         meshCollider.sharedMesh = mesh;
     }
+    
+    #endregion
+    
+    #region Block Access
 
     public void SetBlockType(int x, int y, int z, BlockType type) {
         int index = VoxelData.Get1DIndex(x, y, z);
@@ -44,7 +70,11 @@ public class ChunkData : MonoBehaviour {
         int index = VoxelData.Get1DIndex(x, y, z);
         return voxelMap[index];
     }
-
+    
+    #endregion
+    
+    #region Neighbor Block Queries
+    
     public BlockType GetVoxelType(Vector3Int localPos) {
         if (localPos.x < 0 || localPos.x >= VoxelData.ChunkWidth || 
             localPos.y < 0 || localPos.y >= VoxelData.ChunkHeight || 
@@ -61,4 +91,6 @@ public class ChunkData : MonoBehaviour {
 
         return GetBlockType(localPos.x, localPos.y, localPos.z);
     }
+    
+    #endregion
 }

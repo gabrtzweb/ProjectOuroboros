@@ -2,20 +2,30 @@ using UnityEngine;
 
 [RequireComponent(typeof(InputHandler), typeof(CharacterController))]
 public class PlayerInteractions : MonoBehaviour {
+    #region Serialized Fields
+    
     [Header("Interaction Settings")]
     public float reach = 6f;
     public BlockType selectedBlock = BlockType.OakPlanks; 
     public float interactionCooldown = 0.15f;
 
     [Header("Highlight Box")]
-    public GameObject highlightBox; 
-
+    public GameObject highlightBox;
+    
+    #endregion
+    
+    #region Private Fields
+    
     InputHandler inputHandler;
     CharacterController playerController;
     Transform playerCamera;
     WorldManager worldManager;
 
     float lastInteractTime;
+    
+    #endregion
+    
+    #region Lifecycle Methods
 
     void Awake() {
         inputHandler = GetComponent<InputHandler>();
@@ -29,22 +39,13 @@ public class PlayerInteractions : MonoBehaviour {
 
     void Update() {
         UpdateHighlight();
-
-        bool isBreaking = inputHandler.IsPrimaryActionHeld; 
-        bool isPlacing = inputHandler.IsSecondaryActionHeld;
-
-        if (isBreaking && Time.time - lastInteractTime >= interactionCooldown) {
-            Interact(false);
-            lastInteractTime = Time.time;
-        }
-        
-        if (isPlacing && Time.time - lastInteractTime >= interactionCooldown) {
-            Interact(true);
-            lastInteractTime = Time.time;
-        }
-
-        if (inputHandler.PickBlockPressed) PickBlock();
+        HandleBlockInteractions();
+        HandlePickBlock();
     }
+    
+    #endregion
+    
+    #region Highlight and Targeting
 
     void UpdateHighlight() {
         if (highlightBox == null) return;
@@ -70,7 +71,26 @@ public class PlayerInteractions : MonoBehaviour {
             highlightBox.SetActive(false);
         }
     }
+    
+    #endregion
+    
+    #region Block Interactions
+    
+    void HandleBlockInteractions() {
+        bool isBreaking = inputHandler.IsPrimaryActionHeld; 
+        bool isPlacing = inputHandler.IsSecondaryActionHeld;
 
+        if (isBreaking && Time.time - lastInteractTime >= interactionCooldown) {
+            Interact(false);
+            lastInteractTime = Time.time;
+        }
+        
+        if (isPlacing && Time.time - lastInteractTime >= interactionCooldown) {
+            Interact(true);
+            lastInteractTime = Time.time;
+        }
+    }
+    
     void Interact(bool isPlacing) {
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, reach)) {
             Vector3 targetPos = isPlacing ? hit.point + (hit.normal * 0.01f) : hit.point - (hit.normal * 0.01f);
@@ -98,7 +118,15 @@ public class PlayerInteractions : MonoBehaviour {
             worldManager.SetBlock(blockPos, typeToSet);
         }
     }
-
+    
+    #endregion
+    
+    #region Pick Block
+    
+    void HandlePickBlock() {
+        if (inputHandler.PickBlockPressed) PickBlock();
+    }
+    
     void PickBlock() {
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, reach)) {
             Vector3 targetPos = hit.point - (hit.normal * 0.01f);
@@ -116,4 +144,6 @@ public class PlayerInteractions : MonoBehaviour {
             }
         }
     }
+    
+    #endregion
 }

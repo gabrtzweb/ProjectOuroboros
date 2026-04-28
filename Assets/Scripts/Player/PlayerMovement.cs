@@ -2,28 +2,46 @@ using UnityEngine;
 
 [RequireComponent(typeof(CharacterController), typeof(InputHandler))]
 public class PlayerMovement : MonoBehaviour {
+    #region Serialized Movement Settings
+    
     [Header("Movement Speeds")]
     public float walkSpeed = 4.8f;
     public float runSpeed = 6.8f;
     public float crouchSpeed = 1.4f;
     public float crawlSpeed = 0.8f;
-
+    
+    #endregion
+    
+    #region Serialized Flight Settings
+    
     [Header("Flight Settings")]
     public float flySpeed = 10f;
     public float fastFlySpeed = 22f;
     public float verticalFlySpeed = 8f;
     public float doubleTapWindow = 0.3f;
-
+    
+    #endregion
+    
+    #region Serialized Physics Settings
+    
     [Header("Physics")]
     public float jumpHeight = 1.32f; 
     public float gravity = -16f;
-
+    
+    #endregion
+    
+    #region Serialized Stance Settings
+    
     [Header("Stance & Camera")]
     public Transform cameraTarget;
     public float standingHeight = 1.8f;
     public float crouchingHeight = 1.4f;
     public float crawlingHeight = 0.8f;
-
+    
+    #endregion
+    
+    #region Private Fields
+    
     CharacterController controller;
     InputHandler inputHandler;
     WorldManager worldManager;
@@ -32,6 +50,10 @@ public class PlayerMovement : MonoBehaviour {
     bool isFlying = false;
     bool wasJumping = false;
     float lastJumpPressTime = 0f;
+    
+    #endregion
+    
+    #region Lifecycle Methods
 
     void Awake() {
         controller = GetComponent<CharacterController>();
@@ -47,6 +69,10 @@ public class PlayerMovement : MonoBehaviour {
         ApplyStance();
         MovePlayer();
     }
+    
+    #endregion
+    
+    #region Void Fall Detection
 
     void CheckVoidFall() {
         if (transform.position.y < -80f) {
@@ -59,6 +85,10 @@ public class PlayerMovement : MonoBehaviour {
             controller.enabled = true;
         }
     }
+    
+    #endregion
+    
+    #region Stance System
 
     void ApplyStance() {
         if (cameraTarget == null) return;
@@ -81,90 +111,119 @@ public class PlayerMovement : MonoBehaviour {
         camPos.y = Mathf.Lerp(camPos.y, camTargetY, Time.deltaTime * 10f);
         cameraTarget.localPosition = camPos;
     }
+    
+    #endregion
+    
+    #region Movement and Flight
 
     void MovePlayer() {
         bool jumpInput = inputHandler.IsJumping;
         bool jumpHeld = inputHandler.IsJumpHeld;
 
-        // Double tap detection for flight
+        HandleDoubleJumpForFlight(jumpInput);
+        
+        if (isFlying) {
+            HandleFlightMovement(jumpHeld);
+        } else {
+            HandleGroundMovement(jumpInput, jumpHeld);
+        }
+
+        wasJumping = jumpInput;
+    }
+    
+    #endregion
+    
+    #region Flight Mechanics
+    
+    void HandleDoubleJumpForFlight(bool jumpInput) {
         if (jumpInput && !wasJumping) {
             if (Time.time - lastJumpPressTime <= doubleTapWindow) {
                 isFlying = !isFlying;
             }
             lastJumpPressTime = Time.time;
         }
+    }
+    
+    void HandleFlightMovement(bool jumpHeld) {
+        Vector2 moveInput = inputHandler.MoveInput;
+        Vector3 horizontalMove = transform.right * moveInput.x + transform.forward * moveInput.y;
+        
+        float currentSpeed = inputHandler.IsSprinting ? fastFlySpeed : flySpeed;
+        Vector3 finalVelocity = horizontalMove * currentSpeed;
 
+        if (jumpHeld) {
+            velocity.y = verticalFlySpeed;
+        } else if (inputHandler.IsCrouching) {
+            velocity.y = -verticalFlySpeed;
+        } else {
+            velocity.y = 0f; 
+        }
+
+        finalVelocity.y = velocity.y;
+        controller.Move(finalVelocity * Time.deltaTime);
+
+        if (controller.isGrounded && !jumpHeld) {
+            isFlying = false;
+        }
+    }
+    
+    #endregion
+    
+    #region Ground Movement
+    
+    void HandleGroundMovement(bool jumpInput, bool jumpHeld) {
         Vector2 moveInput = inputHandler.MoveInput;
         Vector3 horizontalMove = transform.right * moveInput.x + transform.forward * moveInput.y;
 
-        if (isFlying) {
-            float currentSpeed = inputHandler.IsSprinting ? fastFlySpeed : flySpeed;
-            Vector3 finalVelocity = horizontalMove * currentSpeed;
+        float currentSpeed = GetCurrentSpeed();
+        Vector3 finalVelocity = horizontalMove * currentSpeed;
+        bool isGrounded = controller.isGrounded;
 
-            // Uses the held state to fly up continuously
-            if (jumpHeld) {
-                velocity.y = verticalFlySpeed;
-            } else if (inputHandler.IsCrouching) {
-                velocity.y = -verticalFlySpeed;
-            } else {
-                velocity.y = 0f; 
-            }
-
-            finalVelocity.y = velocity.y;
-            controller.Move(finalVelocity * Time.deltaTime);
-
-            // Land automatically if we hit the ground
-            if (controller.isGrounded && !jumpHeld) {
-                isFlying = false;
-            }
-        } 
-        else {
-            float currentSpeed = walkSpeed;
-
-            if (inputHandler.IsCrawling) {
-                currentSpeed = crawlSpeed;
-            } else if (inputHandler.IsCrouching) {
-                currentSpeed = crouchSpeed;
-            } else if (inputHandler.IsSprinting) {
-                currentSpeed = runSpeed;
-            }
-
-            Vector3 finalVelocity = horizontalMove * currentSpeed;
-            bool isGrounded = controller.isGrounded;
-
-            // Edge detection (Sneak mechanic)
-            if (inputHandler.IsCrouching && isGrounded) {
-                float checkDistance = 0.5f;
-                
-                Vector3 futurePosX = transform.position + new Vector3(finalVelocity.x * Time.deltaTime, 0.1f, 0);
-                if (!Physics.Raycast(futurePosX, Vector3.down, checkDistance)) {
-                    finalVelocity.x = 0;
-                }
-
-                Vector3 futurePosZ = transform.position + new Vector3(0, 0.1f, finalVelocity.z * Time.deltaTime);
-                if (!Physics.Raycast(futurePosZ, Vector3.down, checkDistance)) {
-                    finalVelocity.z = 0;
-                }
-            }
+        HandleEdgeDetection(ref finalVelocity, isGrounded);
+        HandleJumping(jumpInput, isGrounded);
+        HandleGravity();
+        
+        finalVelocity.y = velocity.y;
+        controller.Move(finalVelocity * Time.deltaTime);
+    }
+    
+    float GetCurrentSpeed() {
+        if (inputHandler.IsCrawling) return crawlSpeed;
+        if (inputHandler.IsCrouching) return crouchSpeed;
+        if (inputHandler.IsSprinting) return runSpeed;
+        return walkSpeed;
+    }
+    
+    void HandleEdgeDetection(ref Vector3 finalVelocity, bool isGrounded) {
+        if (inputHandler.IsCrouching && isGrounded) {
+            float checkDistance = 0.5f;
             
-            if (isGrounded && velocity.y < 0) {
-                velocity.y = -2f; 
+            Vector3 futurePosX = transform.position + new Vector3(finalVelocity.x * Time.deltaTime, 0.1f, 0);
+            if (!Physics.Raycast(futurePosX, Vector3.down, checkDistance)) {
+                finalVelocity.x = 0;
             }
 
-            bool canJump = !inputHandler.IsCrawling && !inputHandler.IsCrouching;
-
-            // Normal jump correctly uses jumpInput and !wasJumping
-            if (jumpInput && isGrounded && canJump && !wasJumping) {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            Vector3 futurePosZ = transform.position + new Vector3(0, 0.1f, finalVelocity.z * Time.deltaTime);
+            if (!Physics.Raycast(futurePosZ, Vector3.down, checkDistance)) {
+                finalVelocity.z = 0;
             }
-
-            velocity.y += gravity * Time.deltaTime;
-            
-            finalVelocity.y = velocity.y;
-            controller.Move(finalVelocity * Time.deltaTime);
+        }
+    }
+    
+    void HandleJumping(bool jumpInput, bool isGrounded) {
+        if (isGrounded && velocity.y < 0) {
+            velocity.y = -2f; 
         }
 
-        // State update moved to the end of the method
-        wasJumping = jumpInput;
+        bool canJump = !inputHandler.IsCrawling && !inputHandler.IsCrouching;
+        if (jumpInput && isGrounded && canJump && !wasJumping) {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
     }
+    
+    void HandleGravity() {
+        velocity.y += gravity * Time.deltaTime;
+    }
+    
+    #endregion
 }

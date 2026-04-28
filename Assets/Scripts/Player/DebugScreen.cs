@@ -2,28 +2,45 @@ using UnityEngine;
 using TMPro;
 
 public class DebugScreen : MonoBehaviour {
+    #region Serialized Fields
+    
     [Header("References")]
     public Transform playerTransform;
     public TextMeshProUGUI debugText;
-
+    
+    #endregion
+    
+    #region Private Fields
+    
     float minFps = float.MaxValue;
     float maxFps = 0f;
     float fpsTimer = 0f;
     int frameCount = 0;
     float currentFps = 0f;
+    
+    #endregion
+
+    #region Display Update
 
     void Update() {
         if (playerTransform == null || debugText == null) return;
 
+        UpdateFpsMetrics();
+        UpdateDisplayText();
+    }
+    
+    #endregion
+    
+    #region FPS Tracking
+    
+    void UpdateFpsMetrics() {
         fpsTimer += Time.unscaledDeltaTime;
         frameCount++;
         
         if (fpsTimer >= 0.25f) {
             currentFps = Mathf.RoundToInt(frameCount / fpsTimer);
             
-            // Só começa a gravar os recordes depois de 3 segundos para evitar o lag inicial do Play
             if (Time.realtimeSinceStartup > 3f) {
-                // Ignora o 0 para evitar bugs de travamento da thread
                 if (currentFps < minFps && currentFps > 0) minFps = currentFps;
                 if (currentFps > maxFps) maxFps = currentFps;
             }
@@ -31,7 +48,13 @@ public class DebugScreen : MonoBehaviour {
             frameCount = 0;
             fpsTimer = 0f;
         }
-
+    }
+    
+    #endregion
+    
+    #region Display Content
+    
+    void UpdateDisplayText() {
         int x = Mathf.FloorToInt(playerTransform.position.x);
         int y = Mathf.FloorToInt(playerTransform.position.y);
         int z = Mathf.FloorToInt(playerTransform.position.z);
@@ -40,6 +63,10 @@ public class DebugScreen : MonoBehaviour {
 
         debugText.text = $"FPS: {currentFps} (Min: {(minFps == float.MaxValue ? 0 : minFps)}, Max: {maxFps})\nCoordinates: x {x}, y {y}, z {z}\nDirection: {direction}";
     }
+    
+    #endregion
+    
+    #region Direction Detection
 
     string GetFacingDirection(float yaw) {
         yaw = yaw % 360f;
@@ -52,4 +79,6 @@ public class DebugScreen : MonoBehaviour {
         
         return "Unknown";
     }
+    
+    #endregion
 }

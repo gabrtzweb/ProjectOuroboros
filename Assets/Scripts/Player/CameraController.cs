@@ -3,6 +3,8 @@ using UnityEngine;
 
 [RequireComponent(typeof(InputHandler))]
 public class CameraController : MonoBehaviour {
+    #region Serialized Fields
+    
     [Header("Cameras")]
     public CinemachineCamera firstPersonCamera;
     public CinemachineCamera thirdPersonCamera;
@@ -12,12 +14,20 @@ public class CameraController : MonoBehaviour {
     public float mouseSensitivity = 0.4f;
     public float topClamp = -80f;
     public float bottomClamp = 80f;
-
+    
+    #endregion
+    
+    #region Private Fields
+    
     InputHandler inputHandler;
     float cameraPitch = 0f;
     float playerYaw = 0f;
     bool isFirstPerson = true;
+    
+    #endregion
 
+    #region Lifecycle Methods
+    
     void Awake() {
         inputHandler = GetComponent<InputHandler>();
     }
@@ -36,6 +46,10 @@ public class CameraController : MonoBehaviour {
             SetPerspective(!isFirstPerson);
         }
     }
+    
+    #endregion
+    
+    #region Rotation and Perspective
 
     void HandleRotation() {
         Vector2 lookInput = inputHandler.LookInput * mouseSensitivity;
@@ -54,4 +68,6 @@ public class CameraController : MonoBehaviour {
         firstPersonCamera.Priority = isFirstPerson ? 10 : 0;
         thirdPersonCamera.Priority = isFirstPerson ? 0 : 10;
     }
+    
+    #endregion
 }

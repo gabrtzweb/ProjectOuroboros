@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public static class MeshBuilder {
+    #region Mesh Buffers
+    
     sealed class MeshBuffers {
         public int VertexIndex;
         public readonly List<Vector3> Vertices = new List<Vector3>(8000);
@@ -11,6 +13,10 @@ public static class MeshBuilder {
         public readonly List<int> WaterTriangles = new List<int>(4000);
         public readonly List<int> CutoutTriangles = new List<int>(4000);
     }
+    
+    #endregion
+    
+    #region Mesh Assembly
 
     public static void BuildMesh(ChunkData chunk, Mesh mesh) {
         MeshBuffers buffers = new MeshBuffers();
@@ -31,6 +37,10 @@ public static class MeshBuilder {
         mesh.SetTriangles(buffers.CutoutTriangles, 2);
         mesh.RecalculateNormals();
     }
+    
+    #endregion
+    
+    #region Mesh Data Generation
 
     static void CreateMeshData(ChunkData chunk, MeshBuffers buffers) {
         for (int x = 0; x < VoxelData.ChunkWidth; x++) {
@@ -43,6 +53,10 @@ public static class MeshBuilder {
             }
         }
     }
+    
+    #endregion
+    
+    #region Face Culling and Rendering
 
     static void UpdateFaces(ChunkData chunk, Vector3Int localPos, MeshBuffers buffers) {
         BlockType currentBlock = chunk.GetBlockType(localPos.x, localPos.y, localPos.z);
@@ -138,6 +152,10 @@ public static class MeshBuilder {
             buffers.VertexIndex += 4;
         }
     }
+    
+    #endregion
+    
+    #region Texture and UV Handling
 
     static void AddTexture(int textureID, int rotation, MeshBuffers buffers) {
         float y = textureID / VoxelData.TextureAtlasSizeInBlocks;
@@ -171,6 +189,10 @@ public static class MeshBuilder {
                 break;
         }
     }
+    
+    #endregion
+    
+    #region Texture ID Resolution
 
     static int GetTextureID(BlockType type, Vector3Int globalPos, int faceIndex) {
         float variantNoise = Mathf.PerlinNoise(
@@ -209,4 +231,6 @@ public static class MeshBuilder {
                 return 0;
         }
     }
+    
+    #endregion
 }
