@@ -218,11 +218,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99e7a8ee0d0a86d4fa0eecf40b67262e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  walkSpeed: 4.3
-  runSpeed: 5.6
-  crouchSpeed: 1.5
-  crawlSpeed: 1
-  jumpHeight: 1.25
+  walkSpeed: 4.8
+  runSpeed: 8.4
+  crouchSpeed: 1.6
+  crawlSpeed: 0.8
+  jumpHeight: 1.32
   gravity: -15
   cameraTarget: {fileID: 8679080513526796098}
   standingHeight: 1.8
@@ -240,6 +240,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f66f62694c93a6247be00b9d707aaf69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractions
+  reach: 5
+  stepSize: 0.05
+  selectedBlock: 10
+  highlightBox: {fileID: 0}
 --- !u!114 &8226418833016750647
 MonoBehaviour:
   m_ObjectHideFlags: 0

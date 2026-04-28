@@ -3,13 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController), typeof(InputHandler))]
 public class PlayerMovement : MonoBehaviour {
     [Header("Movement Speeds")]
-    public float walkSpeed = 4.3f;
-    public float runSpeed = 5.6f;
-    public float crouchSpeed = 1.5f;
-    public float crawlSpeed = 1.0f;
+    public float walkSpeed = 4.8f;
+    public float runSpeed = 8.4f;
+    public float crouchSpeed = 1.6f;
+    public float crawlSpeed = 0.8f;
 
     [Header("Physics")]
-    public float jumpHeight = 1.25f; 
+    public float jumpHeight = 1.32f; 
     public float gravity = -30f;
 
     [Header("Stance & Camera")]

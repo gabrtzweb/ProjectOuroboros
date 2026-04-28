@@ -88,6 +88,8 @@ public static class MeshBuilder {
             rotation = Mathf.Abs(rotHash) % 4;
         }
 
+        bool isWaterAbove = chunk.GetVoxelType(localPos + new Vector3Int(0, 1, 0)) == BlockType.Water;
+
         for (int p = 0; p < 6; p++) {
             Vector3Int neighborLocalPos = localPos + VoxelData.faceChecks[p];
             BlockType neighborBlock = chunk.GetVoxelType(neighborLocalPos);
@@ -109,10 +111,17 @@ public static class MeshBuilder {
                 }
             }
 
-            buffers.Vertices.Add(localPos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 0]]);
-            buffers.Vertices.Add(localPos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 1]]);
-            buffers.Vertices.Add(localPos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 2]]);
-            buffers.Vertices.Add(localPos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 3]]);
+            // Draw the 4 vertices for the current face
+            for (int i = 0; i < 4; i++) {
+                Vector3 vertex = VoxelData.voxelVerts[VoxelData.voxelTris[p, i]];
+                
+                // Lower the top vertices of water blocks if there is no water above them
+                if (currentBlock == BlockType.Water && !isWaterAbove && vertex.y > 0.5f) {
+                    vertex.y -= 0.2f;
+                }
+                
+                buffers.Vertices.Add(localPos + vertex);
+            }
 
             AddTexture(GetTextureID(currentBlock, globalPos, p), rotation, buffers);
 
@@ -152,18 +161,14 @@ public static class MeshBuilder {
 
         Color blockColor = Color.white;
         
-        // Color applied only to living plants. Dry grass remains white (original texture colors)
         if (type == BlockType.ShortGrass || type == BlockType.ShortBush) {
             float ambientNoise = Mathf.PerlinNoise(globalPos.x * VoxelConstants.GrassNoiseScale, globalPos.z * VoxelConstants.GrassNoiseScale);
             float colorVariation = Mathf.Lerp(VoxelConstants.GrassTintMinimum, VoxelConstants.GrassTintMaximum, ambientNoise);
             blockColor = new Color(0.35f * colorVariation, 0.7f * colorVariation, 0.3f * colorVariation, 1f);
         }
 
-        // Random jitter offset (-0.3 to 0.3) to break the grid alignment
         float offsetX = ((Mathf.Abs(plantHash) % 100) / 100f) * 0.6f - 0.3f;
         float offsetZ = (((Mathf.Abs(plantHash) / 100) % 100) / 100f) * 0.6f - 0.3f;
-        
-        // Random scale (0.7 to 1.2) for the plant height
         float scaleY = 0.7f + (((Mathf.Abs(plantHash) / 10000) % 100) / 100f) * 0.5f;
 
         Vector3 jitter = new Vector3(offsetX, 0, offsetZ);

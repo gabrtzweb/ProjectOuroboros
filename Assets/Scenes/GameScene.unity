@@ -233,6 +233,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7462553514120876985, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
+      propertyPath: runSpeed
+      value: 6.6
+      objectReference: {fileID: 0}
     - target: {fileID: 8226418833016750647, guid: a52cc76eee404974aa59f5a17d7a1454, type: 3}
       propertyPath: firstPersonCamera
       value: 
@@ -528,7 +532,7 @@ MonoBehaviour:
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
-    FieldOfView: 60.000004
+    FieldOfView: 90
     OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
@@ -680,8 +684,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 16
+  m_fontSizeBase: 16
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1403,6 +1407,7 @@ GameObject:
   - component: {fileID: 1982237335}
   - component: {fileID: 1982237334}
   - component: {fileID: 1982237337}
+  - component: {fileID: 1982237338}
   m_Layer: 0
   m_Name: MainCamera
   m_TagString: MainCamera
@@ -1560,6 +1565,18 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &1982237338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1982237332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0005bb9e39ea99f459cd1e091ee73cc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnderwaterCamera
 --- !u!1 &2083868387
 GameObject:
   m_ObjectHideFlags: 0
@@ -1687,5 +1704,5 @@ SceneRoots:
   - {fileID: 380545381}
   - {fileID: 2111025872}
   - {fileID: 1317701127}
-  - {fileID: 329515729}
   - {fileID: 371129607}
+  - {fileID: 329515729}

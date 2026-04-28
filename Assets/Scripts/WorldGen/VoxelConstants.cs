@@ -21,7 +21,7 @@ public static class VoxelConstants {
     public const float GrassNoiseScale = 0.03f;
     public const float GrassTintMinimum = 0.85f;
     public const float GrassTintMaximum = 1.15f;
-    public const float WaterAlpha = 0.75f;
+    public const float WaterAlpha = 0.9f;
 
     public const int GrassTopTextureId = 10;
     public const int GrassBottomTextureId = 4;
