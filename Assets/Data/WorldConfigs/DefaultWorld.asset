@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f80644435ab094b4dabdf82d1147aefb, type: 3}
+  m_Name: DefaultWorld
+  m_EditorClassIdentifier: Assembly-CSharp::WorldConfiguration
+  renderDistance: 16
+  chunkBounds: 4
+  solidGroundHeight: -4
+  terrainHeightMultiplier: 48
+  terrainNoiseScale: 0.005
+  seaLevel: 8
+  noiseOffset: 10000
+  heightCurve: 1.2
+  deepslateTransitionLevel: -32

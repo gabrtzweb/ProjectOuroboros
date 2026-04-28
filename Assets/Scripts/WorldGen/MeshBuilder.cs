@@ -94,20 +94,8 @@ public static class MeshBuilder {
             Vector3Int neighborLocalPos = localPos + VoxelData.faceChecks[p];
             BlockType neighborBlock = chunk.GetVoxelType(neighborLocalPos);
 
-            if (currentBlock == BlockType.Water) {
-                if (neighborBlock != BlockType.Air) {
-                    continue;
-                }
-            }
-            else if (currentBlock == BlockType.Leaves) {
-                if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water) {
-                    continue;
-                }
-            }
-            else {
-                if (neighborBlock != BlockType.Air && neighborBlock != BlockType.Water && neighborBlock != BlockType.Leaves) {
-                    continue;
-                }
+            if (ShouldCullFace(currentBlock, neighborBlock)) {
+                continue;
             }
 
             buffers.Vertices.Add(localPos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 0]]);
@@ -150,6 +138,17 @@ public static class MeshBuilder {
             }
 
             buffers.VertexIndex += 4;
+        }
+    }
+    
+    static bool ShouldCullFace(BlockType currentBlock, BlockType neighborBlock) {
+        switch (currentBlock) {
+            case BlockType.Water:
+                return neighborBlock != BlockType.Air;
+            case BlockType.Leaves:
+                return neighborBlock != BlockType.Air && neighborBlock != BlockType.Water;
+            default:
+                return neighborBlock != BlockType.Air && neighborBlock != BlockType.Water && neighborBlock != BlockType.Leaves;
         }
     }
     

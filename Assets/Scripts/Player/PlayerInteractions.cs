@@ -2,6 +2,14 @@ using UnityEngine;
 
 [RequireComponent(typeof(InputHandler), typeof(CharacterController))]
 public class PlayerInteractions : MonoBehaviour {
+    #region Constants
+    
+    const float RAYCAST_HIT_OFFSET = 0.01f;
+    const float HIGHLIGHT_BOX_OFFSET = 0.005f;
+    const float BOUNDS_EXPANSION = -0.05f;
+    
+    #endregion
+
     #region Serialized Fields
     
     [Header("Interaction Settings")]
@@ -51,7 +59,7 @@ public class PlayerInteractions : MonoBehaviour {
         if (highlightBox == null) return;
 
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, reach)) {
-            Vector3 targetPos = hit.point - (hit.normal * 0.01f);
+            Vector3 targetPos = hit.point - (hit.normal * RAYCAST_HIT_OFFSET);
             
             Vector3Int blockPos = new Vector3Int(
                 Mathf.FloorToInt(targetPos.x),
@@ -63,7 +71,7 @@ public class PlayerInteractions : MonoBehaviour {
             
             if (blockTargeted != BlockType.Air && blockTargeted != BlockType.Water) {
                 highlightBox.SetActive(true);
-                highlightBox.transform.position = blockPos - new Vector3(0.005f, 0.005f, 0.005f);
+                highlightBox.transform.position = blockPos - new Vector3(HIGHLIGHT_BOX_OFFSET, HIGHLIGHT_BOX_OFFSET, HIGHLIGHT_BOX_OFFSET);
             } else {
                 highlightBox.SetActive(false);
             }
@@ -93,7 +101,7 @@ public class PlayerInteractions : MonoBehaviour {
     
     void Interact(bool isPlacing) {
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, reach)) {
-            Vector3 targetPos = isPlacing ? hit.point + (hit.normal * 0.01f) : hit.point - (hit.normal * 0.01f);
+            Vector3 targetPos = isPlacing ? hit.point + (hit.normal * RAYCAST_HIT_OFFSET) : hit.point - (hit.normal * RAYCAST_HIT_OFFSET);
             
             Vector3Int blockPos = new Vector3Int(
                 Mathf.FloorToInt(targetPos.x),
@@ -103,7 +111,7 @@ public class PlayerInteractions : MonoBehaviour {
 
             if (isPlacing) {
                 Bounds blockBounds = new Bounds(blockPos + new Vector3(0.5f, 0.5f, 0.5f), Vector3.one);
-                blockBounds.Expand(-0.05f); 
+                blockBounds.Expand(BOUNDS_EXPANSION); 
                 
                 if (playerController.bounds.Intersects(blockBounds)) {
                     return;
@@ -129,7 +137,7 @@ public class PlayerInteractions : MonoBehaviour {
     
     void PickBlock() {
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, reach)) {
-            Vector3 targetPos = hit.point - (hit.normal * 0.01f);
+            Vector3 targetPos = hit.point - (hit.normal * RAYCAST_HIT_OFFSET);
             
             Vector3Int blockPos = new Vector3Int(
                 Mathf.FloorToInt(targetPos.x),

@@ -6,32 +6,12 @@ public class WorldManager : MonoBehaviour {
     
     [Header("References")]
     public Transform playerTransform;
-    
-    #endregion
-    
-    #region Serialized Materials
+    public WorldConfiguration config;
     
     [Header("Materials")]
     public Material opaqueMaterial;
     public Material transparentMaterial;
     public Material matCutout;
-    
-    #endregion
-    
-    #region Serialized Generation Settings
-    
-    [Header("Generation Limits")]
-    public int renderDistance = 16;
-    public int chunkBounds = 4;
-    
-    [Header("Terrain Generation Settings")]
-    public int solidGroundHeight = -4; 
-    public int terrainHeightMultiplier = 48; 
-    public float terrainNoiseScale = 0.005f; 
-    public int seaLevel = 8; 
-    public float noiseOffset = 10000f; 
-    public float heightCurve = 1.2f; 
-    public int deepslateTransitionLevel = -32;
     
     #endregion
     
@@ -44,6 +24,10 @@ public class WorldManager : MonoBehaviour {
     #region Lifecycle Methods
 
     void Start() {
+        if (config == null) {
+            Debug.LogError("World Configuration is missing!");
+            return;
+        }
         GenerateWorld();
     }
     
@@ -52,15 +36,15 @@ public class WorldManager : MonoBehaviour {
     #region World Generation
 
     void GenerateWorld() {
-        for (int x = -renderDistance; x <= renderDistance; x++) {
-            for (int z = -renderDistance; z <= renderDistance; z++) {
+        for (int x = -config.renderDistance; x <= config.renderDistance; x++) {
+            for (int z = -config.renderDistance; z <= config.renderDistance; z++) {
                 
                 Vector2 currentPos = new Vector2(x, z);
-                if (Vector2.Distance(Vector2.zero, currentPos) > renderDistance) {
+                if (Vector2.Distance(Vector2.zero, currentPos) > config.renderDistance) {
                     continue;
                 }
 
-                for (int y = -chunkBounds; y < chunkBounds; y++) {
+                for (int y = -config.chunkBounds; y < config.chunkBounds; y++) {
                     Vector3Int chunkCoord = new Vector3Int(x, y, z);
                     CreateChunkData(chunkCoord);
                 }
@@ -102,8 +86,8 @@ public class WorldManager : MonoBehaviour {
     #region Terrain Sampling
 
     public int CalculateSurfaceHeight(int globalX, int globalZ) {
-        float scale = terrainNoiseScale;
-        float offset = noiseOffset;
+        float scale = config.terrainNoiseScale;
+        float offset = config.noiseOffset;
 
         float posX = (globalX + offset) * scale;
         float posZ = (globalZ + offset) * scale;
@@ -113,9 +97,9 @@ public class WorldManager : MonoBehaviour {
         float noise3 = Mathf.PerlinNoise(posX * 4f, posZ * 4f) * 0.25f;
 
         float totalNoise = (noise1 + noise2 + noise3) / 1.75f;
-        totalNoise = Mathf.Pow(totalNoise, heightCurve);
+        totalNoise = Mathf.Pow(totalNoise, config.heightCurve);
 
-        return solidGroundHeight + Mathf.FloorToInt(totalNoise * terrainHeightMultiplier);
+        return config.solidGroundHeight + Mathf.FloorToInt(totalNoise * config.terrainHeightMultiplier);
     }
     
     #endregion

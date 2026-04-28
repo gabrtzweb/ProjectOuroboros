@@ -2,6 +2,17 @@ using UnityEngine;
 
 [RequireComponent(typeof(CharacterController), typeof(InputHandler))]
 public class PlayerMovement : MonoBehaviour {
+    #region Constants
+    
+    const float VOID_KILL_Y = -80f;
+    const float RESPAWN_HEIGHT_OFFSET = 16f;
+    const float STANCE_TRANSITION_SPEED = 10f;
+    const float GROUNDED_GRAVITY_RESET = -2f;
+    const float EDGE_CHECK_DISTANCE = 0.5f;
+    const float EDGE_CHECK_Y_OFFSET = 0.1f;
+    
+    #endregion
+
     #region Serialized Movement Settings
     
     [Header("Movement Speeds")]
@@ -42,7 +53,7 @@ public class PlayerMovement : MonoBehaviour {
     
     #region Private Fields
     
-    CharacterController controller;
+    CharacterController charController;
     InputHandler inputHandler;
     WorldManager worldManager;
     Vector3 velocity;
@@ -56,7 +67,7 @@ public class PlayerMovement : MonoBehaviour {
     #region Lifecycle Methods
 
     void Awake() {
-        controller = GetComponent<CharacterController>();
+        charController = GetComponent<CharacterController>();
         inputHandler = GetComponent<InputHandler>();
     }
 
@@ -75,14 +86,14 @@ public class PlayerMovement : MonoBehaviour {
     #region Void Fall Detection
 
     void CheckVoidFall() {
-        if (transform.position.y < -80f) {
-            controller.enabled = false;
+        if (transform.position.y < VOID_KILL_Y) {
+            charController.enabled = false;
             
-            float maxHeight = (worldManager.chunkBounds * VoxelData.ChunkHeight) + 16f;
+            float maxHeight = (worldManager.config.chunkBounds * VoxelData.ChunkHeight) + RESPAWN_HEIGHT_OFFSET;
             transform.position = new Vector3(transform.position.x, maxHeight, transform.position.z);
             velocity = Vector3.zero;
             
-            controller.enabled = true;
+            charController.enabled = true;
         }
     }
     
@@ -104,11 +115,11 @@ public class PlayerMovement : MonoBehaviour {
             camTargetY = 1.2f;
         }
 
-        controller.height = Mathf.Lerp(controller.height, targetHeight, Time.deltaTime * 10f);
-        controller.center = new Vector3(0, controller.height / 2f, 0);
+        charController.height = Mathf.Lerp(charController.height, targetHeight, Time.deltaTime * STANCE_TRANSITION_SPEED);
+        charController.center = new Vector3(0, charController.height / 2f, 0);
 
         Vector3 camPos = cameraTarget.localPosition;
-        camPos.y = Mathf.Lerp(camPos.y, camTargetY, Time.deltaTime * 10f);
+        camPos.y = Mathf.Lerp(camPos.y, camTargetY, Time.deltaTime * STANCE_TRANSITION_SPEED);
         cameraTarget.localPosition = camPos;
     }
     
@@ -160,9 +171,9 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         finalVelocity.y = velocity.y;
-        controller.Move(finalVelocity * Time.deltaTime);
+        charController.Move(finalVelocity * Time.deltaTime);
 
-        if (controller.isGrounded && !jumpHeld) {
+        if (charController.isGrounded && !jumpHeld) {
             isFlying = false;
         }
     }
@@ -177,14 +188,14 @@ public class PlayerMovement : MonoBehaviour {
 
         float currentSpeed = GetCurrentSpeed();
         Vector3 finalVelocity = horizontalMove * currentSpeed;
-        bool isGrounded = controller.isGrounded;
+        bool isGrounded = charController.isGrounded;
 
         HandleEdgeDetection(ref finalVelocity, isGrounded);
         HandleJumping(jumpInput, isGrounded);
         HandleGravity();
         
         finalVelocity.y = velocity.y;
-        controller.Move(finalVelocity * Time.deltaTime);
+        charController.Move(finalVelocity * Time.deltaTime);
     }
     
     float GetCurrentSpeed() {
@@ -196,15 +207,13 @@ public class PlayerMovement : MonoBehaviour {
     
     void HandleEdgeDetection(ref Vector3 finalVelocity, bool isGrounded) {
         if (inputHandler.IsCrouching && isGrounded) {
-            float checkDistance = 0.5f;
-            
-            Vector3 futurePosX = transform.position + new Vector3(finalVelocity.x * Time.deltaTime, 0.1f, 0);
-            if (!Physics.Raycast(futurePosX, Vector3.down, checkDistance)) {
+            Vector3 futurePosX = transform.position + new Vector3(finalVelocity.x * Time.deltaTime, EDGE_CHECK_Y_OFFSET, 0);
+            if (!Physics.Raycast(futurePosX, Vector3.down, EDGE_CHECK_DISTANCE)) {
                 finalVelocity.x = 0;
             }
 
-            Vector3 futurePosZ = transform.position + new Vector3(0, 0.1f, finalVelocity.z * Time.deltaTime);
-            if (!Physics.Raycast(futurePosZ, Vector3.down, checkDistance)) {
+            Vector3 futurePosZ = transform.position + new Vector3(0, EDGE_CHECK_Y_OFFSET, finalVelocity.z * Time.deltaTime);
+            if (!Physics.Raycast(futurePosZ, Vector3.down, EDGE_CHECK_DISTANCE)) {
                 finalVelocity.z = 0;
             }
         }
@@ -212,12 +221,12 @@ public class PlayerMovement : MonoBehaviour {
     
     void HandleJumping(bool jumpInput, bool isGrounded) {
         if (isGrounded && velocity.y < 0) {
-            velocity.y = -2f; 
+            velocity.y = GROUNDED_GRAVITY_RESET; 
         }
 
         bool canJump = !inputHandler.IsCrawling && !inputHandler.IsCrouching;
         if (jumpInput && isGrounded && canJump && !wasJumping) {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            velocity.y = Mathf.Sqrt(jumpHeight * GROUNDED_GRAVITY_RESET * gravity);
         }
     }
     

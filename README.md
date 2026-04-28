@@ -1,6 +1,6 @@
 # Ouroboros Voxel Engine (Ringworld)
 
-A compact procedural voxel engine prototype for Unity that simulates a centrifugal ringworld habitat. Focused on performance, modular architecture, and an interior-facing gravity model.
+A compact procedural voxel engine prototype for Unity that simulates a centrifugal ringworld habitat. Focused on performance, modular architecture, and an interior-facing gravity model. At the end of this readme there is our outlines of the mathematical foundation and world-building constraints for the current ringworld project.
 
 The current terrain and chunk system are compatible with an inner-surface world. Future updates will introduce curved coordinate mapping, gravity vectors per-chunk, and multi-scale LOD for very large ring structures.
 
@@ -33,3 +33,27 @@ The current terrain and chunk system are compatible with an inner-surface world.
 3. **3D Noise Subterranean:** Integrate FastNoiseLite to carve out volumetric caves, overhangs, and complex underground networks.
 4. **Multithreading:** Offload chunk voxel population and mesh data calculation to background threads/Unity Jobs to enable seamless infinite exploration.
 5. **Ringworld Physics:** Implement the centrifugal gravity model and curved coordinate rendering for the final habitat aesthetic.
+
+## Ringworld Dimensions & Specifications
+
+1. Physical Scale
+
+- **Ring Radius:** 651.9 Meters (Surface baseline at Y=0)
+- **Ring Length:** 256 Chunks (Total circumference: 4,096 Meters)
+- **Ring Width:** 16 Chunks (Total lateral span: 256 Meters)
+- **Ring Height:** 8 Chunks Total (128 Blocks of vertical volume)
+
+2. Coordinate Boundaries
+
+- **Min Chunk Y:** -4 (Dig depth of -64 blocks below the surface)
+- **Max Chunk Y:** 3 (Maximum altitude of +64 blocks above the surface)
+
+3. Visibility & Performance
+
+- **Active Chunks:** 16 Chunks (High-detail physics and interaction radius around the player)
+- **LOD View Distance:** 128 Chunks (Ensures the full loop of the ring is always visible from any point)
+
+4. World Metrics
+
+- **Walking Speed:** ~16 minutes for a full 4,096m lap.
+- **Voxel Distortion:** Maximum ~10% at the extreme top/bottom boundaries (within acceptable visual limits).

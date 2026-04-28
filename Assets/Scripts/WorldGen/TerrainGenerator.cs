@@ -47,14 +47,14 @@ public static class TerrainGenerator {
                         }
                     }
                     else if (globalY > column.SurfaceHeight) {
-                        chunk.SetBlockType(x, y, z, globalY <= worldManager.seaLevel ? BlockType.Water : BlockType.Air);
+                        chunk.SetBlockType(x, y, z, globalY <= worldManager.config.seaLevel ? BlockType.Water : BlockType.Air);
                     }
                     else if (globalY == column.SurfaceHeight) {
-                        if (globalY == worldManager.seaLevel + VoxelConstants.TerrainSandBeachOffset) {
+                        if (globalY == worldManager.config.seaLevel + VoxelConstants.TerrainSandBeachOffset) {
                             chunk.SetBlockType(x, y, z, BlockType.Sand);
                         }
-                        else if (globalY <= worldManager.seaLevel) {
-                            if (globalY >= worldManager.seaLevel - VoxelConstants.TerrainShallowWaterDepth) {
+                        else if (globalY <= worldManager.config.seaLevel) {
+                            if (globalY >= worldManager.config.seaLevel - VoxelConstants.TerrainShallowWaterDepth) {
                                 if (column.MixNoise > VoxelConstants.TerrainShallowWaterMixThreshold) {
                                     chunk.SetBlockType(x, y, z, BlockType.Gravel);
                                 }
@@ -101,8 +101,8 @@ public static class TerrainGenerator {
         int surfaceHeight = worldManager.CalculateSurfaceHeight(globalX, globalZ);
 
         float layerWave = Mathf.PerlinNoise(
-            (globalX + worldManager.noiseOffset) * VoxelConstants.TerrainLayerWaveScale,
-            (globalZ + worldManager.noiseOffset) * VoxelConstants.TerrainLayerWaveScale
+            (globalX + worldManager.config.noiseOffset) * VoxelConstants.TerrainLayerWaveScale,
+            (globalZ + worldManager.config.noiseOffset) * VoxelConstants.TerrainLayerWaveScale
         ) * VoxelConstants.TerrainLayerWaveAmplitude;
 
         int baseDirtBoundary = surfaceHeight - VoxelConstants.TerrainDirtBoundaryOffset - Mathf.FloorToInt(layerWave * 0.5f);
@@ -110,15 +110,15 @@ public static class TerrainGenerator {
         int baseGravelBoundary = surfaceHeight - VoxelConstants.TerrainGravelBoundaryOffset - Mathf.FloorToInt(layerWave);
 
         float deepslateWave = Mathf.PerlinNoise(
-            (globalX + worldManager.noiseOffset) * VoxelConstants.TerrainDeepslateWaveScale,
-            (globalZ + worldManager.noiseOffset) * VoxelConstants.TerrainDeepslateWaveScale
+            (globalX + worldManager.config.noiseOffset) * VoxelConstants.TerrainDeepslateWaveScale,
+            (globalZ + worldManager.config.noiseOffset) * VoxelConstants.TerrainDeepslateWaveScale
         ) * VoxelConstants.TerrainDeepslateWaveAmplitude;
 
-        int baseDeepslateBoundary = worldManager.deepslateTransitionLevel + Mathf.FloorToInt(deepslateWave);
+        int baseDeepslateBoundary = worldManager.config.deepslateTransitionLevel + Mathf.FloorToInt(deepslateWave);
 
         float mixNoise = Mathf.PerlinNoise(
-            (globalX + worldManager.noiseOffset) * VoxelConstants.TerrainUnderwaterMixNoiseScale,
-            (globalZ + worldManager.noiseOffset) * VoxelConstants.TerrainUnderwaterMixNoiseScale
+            (globalX + worldManager.config.noiseOffset) * VoxelConstants.TerrainUnderwaterMixNoiseScale,
+            (globalZ + worldManager.config.noiseOffset) * VoxelConstants.TerrainUnderwaterMixNoiseScale
         );
 
         return new ColumnData {
